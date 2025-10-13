@@ -1,4 +1,9 @@
 """Module for managing run folder creation."""
+# /// script
+# dependencies = [
+#   "python-dotenv",
+# ]
+# ///
 
 import os
 from pathlib import Path

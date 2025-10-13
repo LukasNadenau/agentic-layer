@@ -1,4 +1,9 @@
 """Draft classification using Pydantic AI."""
+# /// script
+# dependencies = [
+#   "pydantic-ai",
+# ]
+# ///
 
 from pydantic_ai import Agent
 from models import DraftClass, DraftClassification

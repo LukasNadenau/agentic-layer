@@ -2,6 +2,12 @@
 
 This script orchestrates the initialization of a new development workflow run.
 """
+# /// script
+# dependencies = [
+#   "pydantic-ai",
+#   "python-dotenv",
+# ]
+# ///
 
 import sys
 import asyncio
