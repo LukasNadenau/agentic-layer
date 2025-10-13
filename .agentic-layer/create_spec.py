@@ -6,6 +6,7 @@
 # ]
 # ///
 
+from pathlib import Path
 from dotenv import load_dotenv
 from get_or_create_run_folder import get_or_create_run_folder
 from models import DraftClass
@@ -14,7 +15,7 @@ from claude_agent_sdk import query, ClaudeAgentOptions
 load_dotenv()
 
 
-async def create_spec(run_id: str, draft_file_path: str, draft_class: DraftClass) -> bool:
+async def create_spec(run_id: str, draft_file_path: str, draft_class: DraftClass) -> Path | None:
     """
     Creates a spec file by calling Claude Code with the appropriate command.
 
@@ -24,7 +25,7 @@ async def create_spec(run_id: str, draft_file_path: str, draft_class: DraftClass
         draft_class: Classification of the draft (DraftClass.FEATURE or DraftClass.BUG)
 
     Returns:
-        bool: True if spec file was successfully created, False otherwise
+        Path | None: Path to the spec file if successfully created, None otherwise
     """
     # Get or create run folder
     run_folder = get_or_create_run_folder(run_id)
@@ -55,7 +56,7 @@ async def create_spec(run_id: str, draft_file_path: str, draft_class: DraftClass
 
     if spec_exists:
         print(f"✓ Spec file created successfully at: {spec_file_path}")
+        return spec_file_path
     else:
         print(f"✗ Spec file was not created at: {spec_file_path}")
-
-    return spec_exists
+        return None
