@@ -12,31 +12,31 @@ This script orchestrates the initialization of a new development workflow run.
 import sys
 import asyncio
 from pathlib import Path
+from typing import Tuple
 
 from generate_run_id import generate_run_id
 from get_or_create_run_folder import get_or_create_run_folder
 from copy_draft_to_run_folder import copy_draft_to_run_folder
 from read_draft_text import read_draft_text
-from classify_draft import classify_draft
+from classify_draft import classify_draft, DraftClass
 from generate_branch_name import generate_branch_name
 from create_branch import create_branch
 
 
-async def main():
-    """Main orchestration function for the ADW initialization flow."""
-    # Parse command line arguments
-    if len(sys.argv) < 2:
-        print("Usage: python adw_init.py <draft_file_path> [run_id] [issue_id]", file=sys.stderr)
-        sys.exit(1)
+async def adw_init(draft_file_path: str, run_id: str = None, issue_id: str = None) -> Tuple[str, str, str, DraftClass]:
+    """Initialize the Agentic Development Workflow.
 
-    draft_file_path = sys.argv[1]
-    run_id = sys.argv[2] if len(sys.argv) > 2 else None
-    issue_id = sys.argv[3] if len(sys.argv) > 3 else None
+    Args:
+        draft_file_path: Path to the draft file to process
+        run_id: Optional run ID (generated if not provided)
+        issue_id: Optional issue ID for branch naming
 
+    Returns:
+        Tuple of (run_id, draft_destination_path, branch_name, draft_class)
+    """
     # Validate draft file exists
     if not Path(draft_file_path).exists():
-        print(f"Error: Draft file not found: {draft_file_path}", file=sys.stderr)
-        sys.exit(1)
+        raise FileNotFoundError(f"Draft file not found: {draft_file_path}")
 
     # Step 1: Generate run ID if not provided
     if not run_id:
@@ -76,10 +76,30 @@ async def main():
     create_branch(branch_name)
     print(f"  Branch created and checked out: {branch_name}")
 
-    print("\n ADW initialization complete!")
+    print("\n✓ ADW initialization complete!")
     print(f"  Run ID: {run_id}")
     print(f"  Branch: {branch_name}")
     print(f"  Run folder: {run_folder}")
+
+    return run_id, destination_path, branch_name, draft_class
+
+
+async def main():
+    """Main orchestration function for the ADW initialization flow."""
+    # Parse command line arguments
+    if len(sys.argv) < 2:
+        print("Usage: python adw_init.py <draft_file_path> [run_id] [issue_id]", file=sys.stderr)
+        sys.exit(1)
+
+    draft_file_path = sys.argv[1]
+    run_id = sys.argv[2] if len(sys.argv) > 2 else None
+    issue_id = sys.argv[3] if len(sys.argv) > 3 else None
+
+    try:
+        await adw_init(draft_file_path, run_id, issue_id)
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
