@@ -42,12 +42,13 @@ async def create_spec(run_id: str, draft_file_path: str, draft_class: DraftClass
 
     # Set up options with write restriction to spec file path only
     options = ClaudeAgentOptions(
-        permission_mode="bypassPermissions"
+        permission_mode="bypassPermissions",
+        setting_sources=["project"]
     )
 
     # Use query to send the slash command
-    async for message in query(prompt=command, options=options):
-        print(message)
+    async for _ in query(prompt=command, options=options):
+        pass
 
     # Check if spec file was created
     spec_exists = spec_file_path.exists()
