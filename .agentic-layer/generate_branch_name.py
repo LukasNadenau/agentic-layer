@@ -1,13 +1,13 @@
 """Branch name generation using Pydantic AI."""
 
 from pydantic_ai import Agent
-from .types import DraftClass, BranchDescription
+from models import DraftClass, BranchDescription
 
 
 # Create agent to generate short branch descriptions
 agent = Agent(
     'anthropic:claude-3-5-haiku-20241022',
-    result_type=BranchDescription,
+    output_type=BranchDescription,
     system_prompt=(
         'You generate concise branch name descriptions (3-5 words max). '
         'Use snake_case format. Focus on the key action or change. '
@@ -36,7 +36,7 @@ async def generate_branch_name(
     """
     # Generate short description using AI agent
     result = await agent.run(draft)
-    short_desc = result.data.short_description
+    short_desc = result.output.short_description
 
     # Normalize the description (lowercase, underscores)
     short_desc = short_desc.lower().replace(' ', '_').replace('-', '_')

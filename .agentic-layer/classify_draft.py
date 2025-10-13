@@ -1,12 +1,12 @@
 """Draft classification using Pydantic AI."""
 
 from pydantic_ai import Agent
-from .types import DraftClass, DraftClassification
+from models import DraftClass, DraftClassification
 
 # Create agent with structured output
 agent = Agent(
     'anthropic:claude-3-5-haiku-20241022',
-    result_type=DraftClassification,
+    output_type=DraftClassification,
     system_prompt=(
         'You are a classifier that determines whether a draft describes a FEATURE or a BUG. '
         'A FEATURE is a new capability, enhancement, or functionality. '
@@ -24,4 +24,4 @@ async def classify_draft(draft_text: str) -> DraftClass:
         DraftClass: The classification (FEATURE or BUG)
     """
     result = await agent.run(draft_text)
-    return result.data.draft_class
+    return result.output.draft_class
