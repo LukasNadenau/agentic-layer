@@ -64,7 +64,7 @@ async def adw_init(draft_file_path: str, run_id: str = None, issue_id: str = Non
     # Step 5: Classify the draft
     print("Step 5: Classifying draft...")
     draft_class = await classify_draft(draft_text)
-    print(f"  Draft classified as: {draft_class.value}")
+    print(f"  Draft classified as: {draft_class}")
 
     # Step 6: Generate branch name
     print("Step 6: Generating branch name...")
@@ -78,8 +78,9 @@ async def adw_init(draft_file_path: str, run_id: str = None, issue_id: str = Non
 
     print("\n✓ ADW initialization complete!")
     print(f"  Run ID: {run_id}")
+    print(f"  Draft file: {draft_file_path}")
+    print(f"  Draft class: {draft_class}")
     print(f"  Branch: {branch_name}")
-    print(f"  Run folder: {run_folder}")
 
     return run_id, destination_path, branch_name, draft_class
 
