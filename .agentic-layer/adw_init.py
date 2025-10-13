@@ -11,6 +11,7 @@ This script orchestrates the initialization of a new development workflow run.
 
 import sys
 import asyncio
+import argparse
 from pathlib import Path
 from typing import Tuple
 
@@ -88,16 +89,15 @@ async def adw_init(draft_file_path: str, run_id: str = None, issue_id: str = Non
 async def main():
     """Main orchestration function for the ADW initialization flow."""
     # Parse command line arguments
-    if len(sys.argv) < 2:
-        print("Usage: python adw_init.py <draft_file_path> [run_id] [issue_id]", file=sys.stderr)
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Initialize the Agentic Development Workflow")
+    parser.add_argument("--draft", required=True, help="Path to the draft file to process")
+    parser.add_argument("--run_id", help="Optional run ID (generated if not provided)")
+    parser.add_argument("--issue_id", help="Optional issue ID for branch naming")
 
-    draft_file_path = sys.argv[1]
-    run_id = sys.argv[2] if len(sys.argv) > 2 else None
-    issue_id = sys.argv[3] if len(sys.argv) > 3 else None
+    args = parser.parse_args()
 
     try:
-        await adw_init(draft_file_path, run_id, issue_id)
+        await adw_init(args.draft, args.run_id, args.issue_id)
     except FileNotFoundError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
