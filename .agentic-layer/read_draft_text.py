@@ -1,6 +1,5 @@
 """Module for reading draft text from run folders."""
 
-from pathlib import Path
 from get_or_create_run_folder import get_or_create_run_folder
 
 
