@@ -13,7 +13,7 @@ import sys
 import asyncio
 import argparse
 
-from run_tests import implement_spec
+from run_tests import run_tests
 
 
 async def main():
@@ -26,7 +26,7 @@ async def main():
     args = parser.parse_args()
 
     try:
-        success = await implement_spec(args.run_id, args.test_results)
+        success = await run_tests(args.run_id, args.test_results)
         if not success:
             sys.exit(1)
     except (FileNotFoundError, ValueError, RuntimeError) as e:

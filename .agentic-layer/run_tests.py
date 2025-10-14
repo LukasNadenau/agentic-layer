@@ -12,7 +12,7 @@ from claude_agent_sdk import query, ClaudeAgentOptions
 load_dotenv()
 
 
-async def implement_spec(run_id: str, test_result_folder: str) -> bool:
+async def run_tests(run_id: str, test_result_folder: str) -> bool:
     """
     Runs tests calling Claude Code with the /test command.
 
