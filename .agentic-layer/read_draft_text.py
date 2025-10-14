@@ -1,6 +1,6 @@
 """Module for reading draft text from run folders."""
 
-from get_or_create_run_folder import get_or_create_run_folder
+from get_or_create_folders import get_or_create_run_folder
 
 
 def read_draft_text(run_id):

@@ -8,7 +8,7 @@
 
 from pathlib import Path
 from dotenv import load_dotenv
-from get_or_create_run_folder import get_or_create_run_folder
+from get_or_create_folders import get_or_create_run_folder
 from models import DraftClass
 from claude_agent_sdk import query, ClaudeAgentOptions
 

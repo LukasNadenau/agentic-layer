@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Tuple
 
 from generate_run_id import generate_run_id
-from get_or_create_run_folder import get_or_create_run_folder
+from get_or_create_folders import get_or_create_run_folder
 from copy_draft_to_run_folder import copy_draft_to_run_folder
 from read_draft_text import read_draft_text
 from classify_draft import classify_draft, DraftClass

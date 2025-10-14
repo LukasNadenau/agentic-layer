@@ -2,7 +2,7 @@
 
 import shutil
 from pathlib import Path
-from get_or_create_run_folder import get_or_create_run_folder
+from get_or_create_folders import get_or_create_run_folder
 
 
 def copy_draft_to_run_folder(run_id, draft_file_path):
