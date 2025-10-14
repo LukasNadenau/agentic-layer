@@ -54,8 +54,8 @@ async def adw_init(draft_file_path: str, run_id: str = None, issue_id: str = Non
 
     # Step 3: Copy draft to run folder
     print("Step 3: Copying draft to run folder...")
-    destination_path = copy_draft_to_run_folder(run_id, draft_file_path)
-    print(f"  Draft copied to: {destination_path}")
+    draft_destination_path = copy_draft_to_run_folder(run_id, draft_file_path)
+    print(f"  Draft copied to: {draft_destination_path}")
 
     # Step 4: Read draft content
     print("Step 4: Reading draft content...")
@@ -83,7 +83,7 @@ async def adw_init(draft_file_path: str, run_id: str = None, issue_id: str = Non
     print(f"  Draft class: {draft_class}")
     print(f"  Branch: {branch_name}")
 
-    return run_id, destination_path, branch_name, draft_class
+    return run_id, draft_destination_path, branch_name, draft_class
 
 
 async def main():
