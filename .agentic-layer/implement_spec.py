@@ -6,7 +6,6 @@
 # ]
 # ///
 
-from pathlib import Path
 from dotenv import load_dotenv
 from claude_agent_sdk import query, ClaudeAgentOptions
 

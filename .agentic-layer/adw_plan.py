@@ -34,7 +34,7 @@ async def main():
         success = await create_spec(args.run_id, args.draft, draft_class)
         if not success:
             sys.exit(1)
-    except Exception as e:
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
