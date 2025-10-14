@@ -30,7 +30,8 @@ async def implement_spec(run_id: str, spec_file_path: str) -> bool:
     # Set up options with bypass permissions
     options = ClaudeAgentOptions(
         permission_mode="bypassPermissions",
-        setting_sources=["project"]
+        setting_sources=["project"],
+        model="haiku"
     )
 
     # Use query to send the slash command
