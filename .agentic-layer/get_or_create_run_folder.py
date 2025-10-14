@@ -22,3 +22,11 @@ def get_or_create_run_folder(run_id):
     run_path.mkdir(parents=True, exist_ok=True)
 
     return run_path
+
+def get_or_create_test_folder(run_id):
+    """Creates a 'test' folder inside the run folder for the given run ID."""
+    run_path = get_or_create_run_folder(run_id)
+    test_path = run_path / "test"
+    test_path.mkdir(parents=True, exist_ok=True)
+
+    return test_path
