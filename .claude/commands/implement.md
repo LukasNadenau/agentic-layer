@@ -1,6 +1,6 @@
 ---
 argument-hint: [path_to_spec_file]
-description: Implement a feature
+description: Implement a spec
 ---
 
 # Implementation Execution
