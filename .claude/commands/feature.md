@@ -47,8 +47,15 @@ CRITICAL: Before writing the plan, THINK DEEPLY about:
 - What context the implementer will need to succeed
 - What patterns exist in the codebase to follow
 - What could go wrong and how to prevent it
+- How errors should be logged and handled for agent debugging
+- What information an agent needs in logs to diagnose failures
 
 The goal is one-pass implementation success through comprehensive context.
+
+IMPORTANT: A coding agent will implement and debug this feature by reading logs and error messages. Ensure the plan includes:
+- Clear logging strategy with what to log at each step
+- Structured error handling that produces actionable error messages
+- Debug information that helps identify root causes quickly
 
 Create the plan following the `Plan Format` below:
 - Replace every `<placeholder>` with detailed, specific content
@@ -147,6 +154,22 @@ Examples:
 - State management schemas
 ```
 
+### Logging & Error Handling Strategy
+
+CRITICAL: An AI agent will debug failures by reading logs. Design for agent-readability.
+
+```yaml
+Logging:
+  What: Entry points, errors (with context), external calls, success
+  Levels: DEBUG (execution flow), INFO (milestones), WARNING (recoverable), ERROR (failures)
+  Pattern: <Reference existing logging pattern from codebase, e.g., path/to/logger.ext>
+
+Error Handling:
+  Types: <Input validation, external failures, resource issues, business logic violations>
+  Include: What operation, what inputs (sanitized), what failed, where (file/function), how to fix
+  Pattern: Catch specific errors, log with context, raise actionable error messages
+```
+
 ### Implementation Tasks
 
 IMPORTANT: Execute every task in order, top to bottom.
@@ -191,24 +214,33 @@ Task X: <task name>
 Key considerations:
 - PATTERN: <Existing pattern to follow - reference file/line>
 - GOTCHA: <Critical detail that could cause issues>
-- ERROR HANDLING: <How errors should be handled>
+- ERROR HANDLING: <How errors should be handled with context>
+- LOGGING: <What to log at each step for debugging>
 - VALIDATION: <How to validate this specific task>
 
 Example:
   function newFeature(input):
-    // PATTERN: Always validate input first (see path/to/validator.ext)
-    validated = validateInput(input)
+    log.info("Starting newFeature", input_type=input.type)
 
-    // GOTCHA: This library requires specific initialization
-    resource = initializeResource()  // see path/to/example.ext
+    // PATTERN: Validate first (see path/to/validator.ext)
+    try:
+      validated = validateInput(input)
+    catch ValidationError as e:
+      log.error("Validation failed: {error}", error=e, input=sanitized(input))
+      throw ValidationError("Invalid input: {reason}")
 
-    // PATTERN: Use existing retry mechanism
-    result = retryOnFailure(() => {
-      return resource.execute(validated)
-    })
+    // GOTCHA: Requires specific initialization (see path/to/example.ext)
+    resource = initializeResource()
 
-    // PATTERN: Standardized response format (see path/to/responses.ext)
-    return formatResponse(result)
+    // PATTERN: Use retry mechanism, log failures with context
+    try:
+      result = retryOnFailure(() => resource.execute(validated))
+    catch ResourceError as e:
+      log.error("Execution failed: {error}", error=e, state=resource.state, input=validated)
+      throw FeatureError("Processing failed: {actionable message}")
+
+    log.info("newFeature completed", summary=result.summary())
+    return formatResponse(result)  // see path/to/responses.ext
 ```
 
 ### Integration Points
@@ -243,6 +275,9 @@ Test cases to implement:
 - test_validation_errors: <description of input validation tests>
 - test_edge_cases: <description of edge case handling>
 - test_error_handling: <description of error scenarios>
+- test_error_messages: Verify error messages are actionable and contain context
+- test_logging: Verify appropriate logs are generated at key points
+- test_error_recovery: <description of how system recovers from failures>
 ```
 
 ### Integration Tests
@@ -302,6 +337,14 @@ Execute validation in levels, fixing errors before proceeding to next level.
 
 # Expected behavior:
 <Describe what should happen when testing manually>
+
+# Where to check logs:
+<Specify log file locations or commands to view logs>
+
+# What to look for in logs:
+- Entry point log message: <expected log message>
+- Success completion log: <expected log message>
+- If errors occur: <what error logs will indicate the problem>
 ```
 
 ## Final Validation Checklist
@@ -311,7 +354,11 @@ Execute validation in levels, fixing errors before proceeding to next level.
 - [ ] Integration tests validate feature works end-to-end
 - [ ] All acceptance criteria met
 - [ ] No regressions in existing functionality
-- [ ] Error cases handled gracefully
+- [ ] Error cases handled gracefully with actionable error messages
+- [ ] Appropriate logging at entry points, errors, and completion
+- [ ] Error messages include context (what, where, why, how to fix)
+- [ ] Logs are informative but not verbose
+- [ ] No sensitive data in logs or error messages
 
 ## Anti-Patterns to Avoid
 - ❌ Don't create new patterns when existing ones work
@@ -319,6 +366,11 @@ Execute validation in levels, fixing errors before proceeding to next level.
 - ❌ Don't ignore failing tests - fix them
 - ❌ Don't hardcode values that should be configurable
 - ❌ Don't catch all exceptions - be specific
+- ❌ Don't log sensitive data (passwords, tokens, PII)
+- ❌ Don't use generic error messages like "Something went wrong"
+- ❌ Don't swallow errors without logging context
+- ❌ Don't log too verbosely - logs should be scannable
+- ❌ Don't throw errors without actionable information
 - ❌ <Add project-specific anti-patterns to avoid>
 
 ## Notes
