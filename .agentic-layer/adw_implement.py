@@ -18,7 +18,7 @@ from claude_agent_sdk import query, ClaudeAgentOptions
 load_dotenv()
 
 
-async def adw_implement(run_id: str, spec_file_path: str) -> bool:
+async def adw_implement(spec_file_path: str) -> bool:
     """
     Implements a spec file by calling Claude Code with the /implement command.
 
@@ -30,7 +30,7 @@ async def adw_implement(run_id: str, spec_file_path: str) -> bool:
         bool: True if implementation completed successfully, False otherwise
     """
     # Create the implement command
-    command = f"/implement {run_id} {spec_file_path}"
+    command = f"/implement {spec_file_path}"
 
     # Set up options with bypass permissions
     options = ClaudeAgentOptions(
@@ -51,13 +51,12 @@ async def main():
     """Main orchestration function for the ADW implementation flow."""
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Implement specification file for Agentic Development Workflow")
-    parser.add_argument("--run_id", required=True, help="The run identifier")
     parser.add_argument("--spec", required=True, help="Path to the spec file")
 
     args = parser.parse_args()
 
     try:
-        success = await adw_implement(args.run_id, args.spec)
+        success = await adw_implement(args.spec)
         if not success:
             sys.exit(1)
     except (FileNotFoundError, ValueError, RuntimeError) as e:
