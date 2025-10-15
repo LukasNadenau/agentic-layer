@@ -12,8 +12,39 @@ This script orchestrates the implementation of specification files for a workflo
 import sys
 import asyncio
 import argparse
+from dotenv import load_dotenv
+from claude_agent_sdk import query, ClaudeAgentOptions
 
-from implement_spec import implement_spec
+load_dotenv()
+
+
+async def adw_implement(run_id: str, spec_file_path: str) -> bool:
+    """
+    Implements a spec file by calling Claude Code with the /implement command.
+
+    Args:
+        run_id: The run identifier
+        spec_file_path: Path to the spec file
+
+    Returns:
+        bool: True if implementation completed successfully, False otherwise
+    """
+    # Create the implement command
+    command = f"/implement {run_id} {spec_file_path}"
+
+    # Set up options with bypass permissions
+    options = ClaudeAgentOptions(
+        permission_mode="bypassPermissions",
+        setting_sources=["project"],
+        model="haiku"
+    )
+
+    # Use query to send the slash command
+    async for _ in query(prompt=command, options=options):
+        pass
+
+    print(f"✓ Implementation command completed for spec: {spec_file_path}")
+    return True
 
 
 async def main():
@@ -26,7 +57,7 @@ async def main():
     args = parser.parse_args()
 
     try:
-        success = await implement_spec(args.run_id, args.spec)
+        success = await adw_implement(args.run_id, args.spec)
         if not success:
             sys.exit(1)
     except (FileNotFoundError, ValueError, RuntimeError) as e:
