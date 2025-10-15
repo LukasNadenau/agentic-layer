@@ -77,7 +77,7 @@ async def adw_complete(draft_file_path: str, run_id: str = None, issue_id: str =
     print("-"*60)
     try:
         test_folder = get_or_create_test_folder(run_id)
-        success = await adw_test_loop(str(test_folder))
+        success = await adw_test_loop(str(test_folder), str(spec_file_path))
         if not success:
             print(" Testing failed: not all tests passed", file=sys.stderr)
             return False

@@ -14,12 +14,13 @@ from junitparser import TestSuite
 load_dotenv()
 
 
-async def resolve_test(test_suite: TestSuite) -> bool:
+async def resolve_test(test_suite: TestSuite, spec_file_path: str) -> bool:
     """
     Resolves failed tests in a test suite by calling Claude Code with the /resolve_failed_test command.
 
     Args:
         test_suite: A junitparser TestSuite object containing failed tests
+        spec_file_path: Path to the specification file
 
     Returns:
         bool: True if resolution completed successfully, False otherwise
@@ -28,7 +29,7 @@ async def resolve_test(test_suite: TestSuite) -> bool:
     stringified_tests = test_suite.tostring()
 
     # Create the resolve_failed_test command
-    command = f"/resolve_failed_test {stringified_tests}"
+    command = f"/resolve_failed_test {stringified_tests} {spec_file_path}"
 
     # Set up options with bypass permissions
     options = ClaudeAgentOptions(

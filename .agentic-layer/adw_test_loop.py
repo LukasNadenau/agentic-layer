@@ -20,13 +20,13 @@ from get_failing_test_suites import get_failing_test_suites
 from resolve_test import resolve_test
 
 
-async def adw_test_loop(test_result_folder: str) -> bool:
+async def adw_test_loop(test_result_folder: str, spec_file_path: str) -> bool:
     """
     Run tests and resolve failures in a loop until all tests pass.
 
     Args:
-        run_id: The run identifier
-        test_path: Path to directory for test result XML files
+        test_result_folder: Path to directory for test result XML files
+        spec_file_path: Path to the specification file
 
     Returns:
         bool: True if all tests passed, False if max iterations reached
@@ -63,7 +63,7 @@ async def adw_test_loop(test_result_folder: str) -> bool:
         # Resolve each failing test suite
         for suite in failing_suites:
             print(f"  Resolving test suite: {suite.name}")
-            success = await resolve_test(suite)
+            success = await resolve_test(suite, spec_file_path)
             if not success:
                 print(f"  Warning: Resolution may not have completed successfully for suite: {suite.name}", file=sys.stderr)
 
@@ -83,11 +83,12 @@ async def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Run tests and resolve failures in a loop until all tests pass")
     parser.add_argument("--path", required=True, help="Path to directory for test result XML files")
+    parser.add_argument("--spec", required=True, help="Path to the specification file")
 
     args = parser.parse_args()
 
     try:
-        success = await adw_test_loop(args.path)
+        success = await adw_test_loop(args.path, args.spec)
         if not success:
             sys.exit(1)
     except (FileNotFoundError, ValueError, RuntimeError) as e:
