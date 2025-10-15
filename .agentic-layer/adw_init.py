@@ -98,8 +98,11 @@ async def main():
 
     try:
         await adw_init(args.draft, args.run_id, args.issue_id)
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
+    except FileNotFoundError as e:
+        print(f"File error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except argparse.ArgumentError as e:
+        print(f"Argument error: {e}", file=sys.stderr)
         sys.exit(1)
 
 
