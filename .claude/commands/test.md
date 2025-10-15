@@ -1,5 +1,5 @@
 ---
-argument-hint: [run_id] [path to test results]
+argument-hint: [path to test results]
 description: Run unit tests
 ---
 
@@ -9,12 +9,11 @@ Create a file following the `Create File` using the `Variables`.
 
 ## Variables
 
-`run_id`: $1
-`path to test results`: $2
+`path to test results`: $1
 
 ## Create File
 
-Create a xml file at "`path to test results`/test\_`run id`.xml" with content:
+Create a xml file at "`path to test results`/test.xml" with content:
 
 ---file content
 

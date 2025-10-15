@@ -12,7 +12,7 @@ from claude_agent_sdk import query, ClaudeAgentOptions
 load_dotenv()
 
 
-async def run_tests(run_id: str, test_result_folder: str) -> bool:
+async def run_tests(test_result_folder: str) -> bool:
     """
     Runs tests calling Claude Code with the /test command.
 
@@ -24,7 +24,7 @@ async def run_tests(run_id: str, test_result_folder: str) -> bool:
         bool: True when ready, False otherwise
     """
     # Create the test command
-    command = f"/test {run_id} {test_result_folder}"
+    command = f"/test {test_result_folder}"
 
     # Set up options with bypass permissions
     options = ClaudeAgentOptions(
