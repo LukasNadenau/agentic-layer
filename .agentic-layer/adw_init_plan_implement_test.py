@@ -44,7 +44,7 @@ async def adw_complete(draft_file_path: str, run_id: str = None, issue_id: str =
         run_id, draft_destination_path, branch_name, draft_class = await adw_init(
             draft_file_path, run_id, issue_id
         )
-    except Exception as e:
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
         print(f" Initialization failed: {e}", file=sys.stderr)
         return False
 
@@ -56,7 +56,7 @@ async def adw_complete(draft_file_path: str, run_id: str = None, issue_id: str =
         if not spec_file_path:
             print(" Planning failed: spec file was not created", file=sys.stderr)
             return False
-    except Exception as e:
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
         print(f" Planning failed: {e}", file=sys.stderr)
         return False
 
@@ -68,7 +68,7 @@ async def adw_complete(draft_file_path: str, run_id: str = None, issue_id: str =
         if not success:
             print(" Implementation failed", file=sys.stderr)
             return False
-    except Exception as e:
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
         print(f" Implementation failed: {e}", file=sys.stderr)
         return False
 
@@ -81,7 +81,7 @@ async def adw_complete(draft_file_path: str, run_id: str = None, issue_id: str =
         if not success:
             print(" Testing failed: not all tests passed", file=sys.stderr)
             return False
-    except Exception as e:
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
         print(f" Testing failed: {e}", file=sys.stderr)
         return False
 
@@ -101,7 +101,7 @@ async def adw_complete(draft_file_path: str, run_id: str = None, issue_id: str =
 async def main():
     """Main orchestration function for the complete ADW flow."""
     parser = argparse.ArgumentParser(
-        description="Execute the complete Agentic Development Workflow: init ’ plan ’ implement ’ test"
+        description="Execute the complete Agentic Development Workflow: init ï¿½ plan ï¿½ implement ï¿½ test"
     )
     parser.add_argument("--draft", required=True, help="Path to the draft file to process")
     parser.add_argument("--run_id", help="Optional run ID (generated if not provided)")
@@ -113,7 +113,7 @@ async def main():
         success = await adw_complete(args.draft, args.run_id, args.issue_id)
         if not success:
             sys.exit(1)
-    except Exception as e:
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
         print(f"Fatal error: {e}", file=sys.stderr)
         sys.exit(1)
 
