@@ -35,7 +35,7 @@ async def resolve_test(test_suite: TestSuite, spec_file_path: str) -> bool:
     options = ClaudeAgentOptions(
         permission_mode="bypassPermissions",
         setting_sources=["project"],
-        model="haiku"
+        model="sonnet"
     )
 
     # Use query to send the slash command

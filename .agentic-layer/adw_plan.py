@@ -51,7 +51,8 @@ async def adw_plan(run_id: str, draft_file_path: str, draft_class: DraftClass) -
     # Set up options with write restriction to spec file path only
     options = ClaudeAgentOptions(
         permission_mode="bypassPermissions",
-        setting_sources=["project"]
+        setting_sources=["project"],
+        model="sonnet"
     )
 
     # Use query to send the slash command
