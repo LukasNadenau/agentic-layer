@@ -65,7 +65,7 @@ async def call_coding_agent(
 
 def _build_claude_command(slash_command: str, arguments: list[str]) -> str:
     """Build Claude Code slash command string."""
-    args_str = " ".join(arguments)
+    args_str = " ".join(str(arg) for arg in arguments)
     command = f"/{slash_command} {args_str}"
     logger.debug("Built Claude command: %s", command)
     return command
@@ -74,7 +74,7 @@ def _build_claude_command(slash_command: str, arguments: list[str]) -> str:
 def _build_copilot_command(slash_command: str, arguments: list[str]) -> str:
     """Build GitHub Copilot CLI prompt string."""
     file_path = Path(".claude") / "commands" / f"{slash_command}.md"
-    args_str = " ".join(arguments)
+    args_str = " ".join(str(arg) for arg in arguments)
     prompt = f"execute the prompt specified in {file_path} using the following arguments: {args_str}"
     logger.debug("Built Copilot prompt: %s", prompt)
     return prompt
