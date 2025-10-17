@@ -7,6 +7,7 @@
 
 import os
 from pathlib import Path
+from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -30,3 +31,9 @@ def get_or_create_test_folder(run_id):
     test_path.mkdir(parents=True, exist_ok=True)
 
     return test_path
+
+def get_log_file_path(run_id: str) -> Path:
+    """Generate log file path for the given run ID."""
+    run_path = get_or_create_run_folder(run_id)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    return run_path / f"{run_id}_adw_{timestamp}.log"

@@ -6,14 +6,18 @@ This script orchestrates the implementation of specification files for a workflo
 # dependencies = [
 #   "claude-agent-sdk",
 #   "python-dotenv",
+#   "rich",
 # ]
 # ///
 
 import sys
 import asyncio
 import argparse
+import logging
 from dotenv import load_dotenv
-from claude_agent_sdk import query, ClaudeAgentOptions
+from console import console
+from claude_agent_sdk import query
+from claude_options import get_default_claude_options
 
 load_dotenv()
 
@@ -29,28 +33,34 @@ async def adw_implement(spec_file_path: str) -> bool:
     Returns:
         bool: True if implementation completed successfully, False otherwise
     """
+    logger = logging.getLogger(__name__)
+    logger.info("Starting implementation for spec: %s", spec_file_path)
+
     # Create the implement command
     command = f"/implement {spec_file_path}"
-
-    # Set up options with bypass permissions
-    options = ClaudeAgentOptions(
-        permission_mode="bypassPermissions",
-        setting_sources=["project"],
-        model="sonnet"
-    )
+    logger.debug("Sending command: %s", command)
 
     # Use query to send the slash command
-    async for _ in query(prompt=command, options=options):
-        pass
+    options = get_default_claude_options()
+    try:
+        with console.status("[cyan]Claude Code is implementing...[/cyan]"):
+            async for message in query(prompt=command, options=options):
+                logger.debug("Claude code message: %s", message)
+    except Exception as e:
+        logger.error("Claude Code SDK query failed during implementation: %s", e, exc_info=True)
+        raise
 
-    print(f"✓ Implementation command completed for spec: {spec_file_path}")
+    console.print(f"[green]✓[/green] Implementation command completed for spec: {spec_file_path}")
+    logger.info("Implementation completed successfully for spec: %s", spec_file_path)
     return True
 
 
 async def main():
     """Main orchestration function for the ADW implementation flow."""
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description="Implement specification file for Agentic Development Workflow")
+    parser = argparse.ArgumentParser(
+        description="Implement specification file for Agentic Development Workflow"
+    )
     parser.add_argument("--spec", required=True, help="Path to the spec file")
 
     args = parser.parse_args()

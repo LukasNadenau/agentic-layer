@@ -7,17 +7,46 @@ This script orchestrates running tests and resolving failures in a loop until al
 #   "claude-agent-sdk",
 #   "python-dotenv",
 #   "junitparser",
+#   "rich",
 # ]
 # ///
 
 import sys
 import asyncio
 import argparse
+import logging
 from pathlib import Path
 
+from console import console
 from run_tests import run_tests
 from get_failing_test_suites import get_failing_test_suites
 from resolve_test import resolve_test
+
+
+async def _resolve_failing_test_suites(failing_suites: list, spec_file_path: str):
+    """Resolve all failing test suites."""
+    logger = logging.getLogger(__name__)
+
+    for suite in failing_suites:
+        console.print(f"  Resolving test suite: [yellow]{suite.name}[/yellow]")
+        logger.info("Resolving test suite: %s", suite.name)
+        try:
+            suite_success = await resolve_test(suite, spec_file_path)
+            if not suite_success:
+                console.print(
+                    f"  [yellow]⚠[/yellow] Warning: Resolution may not have "
+                    f"completed successfully for suite: {suite.name}"
+                )
+                logger.warning(
+                    "Resolution may not have completed successfully for suite: %s",
+                    suite.name
+                )
+        except Exception as e:
+            logger.error(
+                "Test resolution failed for suite %s: %s",
+                suite.name, e, exc_info=True
+            )
+            raise
 
 
 async def adw_test_loop(test_result_folder: str, spec_file_path: str) -> bool:
@@ -31,58 +60,90 @@ async def adw_test_loop(test_result_folder: str, spec_file_path: str) -> bool:
     Returns:
         bool: True if all tests passed, False if max iterations reached
     """
+    logger = logging.getLogger(__name__)
+    logger.info("Starting test loop - test results: %s, spec: %s",
+                test_result_folder, spec_file_path)
+
     test_path_obj = Path(test_result_folder)
     if not test_path_obj.exists():
-        raise FileNotFoundError(f"Test results path does not exist: {test_result_folder}")
+        error_msg = f"Test results path does not exist: {test_result_folder}"
+        logger.error(error_msg)
+        raise FileNotFoundError(error_msg)
 
     iteration = 0
     max_iterations = 10  # Prevent infinite loops
 
     while iteration < max_iterations:
         iteration += 1
-        print(f"\n{'='*60}")
-        print(f"Test Loop Iteration {iteration}")
-        print(f"{'='*60}")
+        console.rule(f"[cyan]Test Loop Iteration {iteration}[/cyan]")
+        logger.info("Test loop iteration %s starting", iteration)
 
         # Run tests
-        print("\n[1/4] Running tests...")
-        success = await run_tests(test_result_folder)
-        if not success:
-            print("Warning: Test run may not have completed successfully", file=sys.stderr)
+        console.print("\n[blue][1/4][/blue] Running tests...")
+        logger.info("Running tests...")
+        try:
+            success = await run_tests(test_result_folder)
+            if not success:
+                console.print(
+                    "[yellow]⚠[/yellow] Warning: Test run may not have completed successfully"
+                )
+                logger.warning("Test run may not have completed successfully")
+        except Exception as e:
+            logger.error("Test run failed: %s", e, exc_info=True)
+            raise
 
         # Check for failing tests
-        print("\n[2/4] Checking for failures...")
+        console.print("\n[blue][2/4][/blue] Checking for failures...")
+        logger.debug("Checking for failing test suites")
         failing_suites = get_failing_test_suites(test_result_folder)
 
         if not failing_suites:
-            print("\nAll tests passed! Exiting loop.")
+            console.print("\n[green]✓[/green] All tests passed! Exiting loop.")
+            logger.info("All tests passed - test loop complete")
             return True
 
-        print(f"\n[3/4] Found {len(failing_suites)} test suite(s) with failures.")
+        console.print(
+            f"\n[blue][3/4][/blue] Found {len(failing_suites)} test suite(s) with failures."
+        )
+        logger.info("Found %s failing test suites", len(failing_suites))
+        for suite in failing_suites:
+            logger.debug("Failing suite: %s", suite.name)
 
         # Resolve each failing test suite
-        for suite in failing_suites:
-            print(f"  Resolving test suite: {suite.name}")
-            success = await resolve_test(suite, spec_file_path)
-            if not success:
-                print(f"  Warning: Resolution may not have completed successfully for suite: {suite.name}", file=sys.stderr)
+        await _resolve_failing_test_suites(failing_suites, spec_file_path)
 
         # Clean up XML files for next iteration
-        print("\n[4/4] Cleaning up test results...")
+        console.print("\n[blue][4/4][/blue] Cleaning up test results...")
+        logger.debug("Cleaning up XML test result files")
         xml_files = list(test_path_obj.glob("*.xml"))
         for xml_file in xml_files:
             xml_file.unlink()
-        print(f"  Deleted {len(xml_files)} XML file(s)")
+        console.print(f"  Deleted {len(xml_files)} XML file(s)")
+        logger.debug("Deleted %s XML files", len(xml_files))
 
-    print(f"\nWarning: Reached maximum iteration limit ({max_iterations}). Some tests may still be failing.", file=sys.stderr)
+        logger.info("Test loop iteration %s complete", iteration)
+
+    # Reached max iterations
+    warning_msg = (
+        f"Reached maximum iteration limit ({max_iterations}). "
+        "Some tests may still be failing."
+    )
+    console.print(f"\n[yellow]⚠[/yellow] {warning_msg}")
+    logger.warning(warning_msg)
     return False
 
 
 async def main():
     """Main orchestration function for the ADW test loop flow."""
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description="Run tests and resolve failures in a loop until all tests pass")
-    parser.add_argument("--path", required=True, help="Path to directory for test result XML files")
+    parser = argparse.ArgumentParser(
+        description="Run tests and resolve failures in a loop until all tests pass"
+    )
+    parser.add_argument(
+        "--path",
+        required=True,
+        help="Path to directory for test result XML files"
+    )
     parser.add_argument("--spec", required=True, help="Path to the specification file")
 
     args = parser.parse_args()

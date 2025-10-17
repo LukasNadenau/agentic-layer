@@ -8,18 +8,85 @@ This script orchestrates the complete workflow from initialization through testi
 #   "python-dotenv",
 #   "pydantic-ai",
 #   "junitparser",
+#   "rich",
 # ]
 # ///
 
 import sys
 import asyncio
 import argparse
+import logging
 
+from console import console, phase_header, success, error
+from logging_config import setup_logging
 from adw_init import adw_init
 from adw_plan import adw_plan
 from adw_implement import adw_implement
 from adw_test_loop import adw_test_loop
 from get_or_create_folders import get_or_create_test_folder
+from rich.panel import Panel
+
+
+async def _run_planning_phase(run_id: str, draft_destination_path: str, draft_class) -> str:
+    """Execute the planning phase and return spec file path."""
+    logger = logging.getLogger(__name__)
+    console.print(phase_header("PLANNING", 2, 4))
+    logger.info("Phase 2/4: Planning - Creating specification file")
+
+    try:
+        spec_file_path = await adw_plan(run_id, draft_destination_path, draft_class)
+        if not spec_file_path:
+            error("Planning failed: spec file was not created")
+            logger.error("Planning failed: spec file was not created")
+            raise RuntimeError("Planning failed: spec file was not created")
+        success(f"Spec created: {spec_file_path}")
+        logger.info("Planning completed successfully. Spec file: %s", spec_file_path)
+        return spec_file_path
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
+        error(f"Planning failed: {e}")
+        logger.error("Planning failed: %s", e, exc_info=True)
+        raise
+
+
+async def _run_implementation_phase(spec_file_path: str):
+    """Execute the implementation phase."""
+    logger = logging.getLogger(__name__)
+    console.print(phase_header("IMPLEMENTATION", 3, 4))
+    logger.info("Phase 3/4: Implementation - Executing specification")
+
+    try:
+        success_impl = await adw_implement(str(spec_file_path))
+        if not success_impl:
+            error("Implementation failed")
+            logger.error("Implementation failed")
+            raise RuntimeError("Implementation failed")
+        success("Implementation completed")
+        logger.info("Implementation completed successfully")
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
+        error(f"Implementation failed: {e}")
+        logger.error("Implementation failed: %s", e, exc_info=True)
+        raise
+
+
+async def _run_testing_phase(run_id: str, spec_file_path: str):
+    """Execute the testing phase."""
+    logger = logging.getLogger(__name__)
+    console.print(phase_header("TESTING", 4, 4))
+    logger.info("Phase 4/4: Testing - Running test validation loop")
+
+    try:
+        test_folder = get_or_create_test_folder(run_id)
+        success_test = await adw_test_loop(str(test_folder), str(spec_file_path))
+        if not success_test:
+            error("Testing failed: not all tests passed")
+            logger.error("Testing failed: not all tests passed")
+            raise RuntimeError("Testing failed: not all tests passed")
+        success("All tests passed")
+        logger.info("Testing completed successfully - all tests passed")
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
+        error(f"Testing failed: {e}")
+        logger.error("Testing failed: %s", e, exc_info=True)
+        raise
 
 
 async def adw_complete(draft_file_path: str, run_id: str = None, issue_id: str = None) -> bool:
@@ -33,75 +100,64 @@ async def adw_complete(draft_file_path: str, run_id: str = None, issue_id: str =
     Returns:
         bool: True if the entire workflow completed successfully, False otherwise
     """
-    print("\n" + "="*60)
-    print("AGENTIC DEVELOPMENT WORKFLOW - COMPLETE ORCHESTRATION")
-    print("="*60)
+    # Display initial header (before logging setup since we don't have run_id yet)
+    console.print(Panel.fit(
+        "[bold cyan]AGENTIC DEVELOPMENT WORKFLOW[/bold cyan]\n"
+        "[white]Complete Orchestration[/white]",
+        border_style="cyan"
+    ))
 
-    # Step 1: Initialize
-    print("\n[PHASE 1/4] INITIALIZATION")
-    print("-"*60)
+    # Phase 1: Initialize
+    console.print(phase_header("INITIALIZATION", 1, 4))
+    console.rule("[cyan]Starting initialization...[/cyan]")
+
     try:
         run_id, draft_destination_path, branch_name, draft_class = await adw_init(
             draft_file_path, run_id, issue_id
         )
     except (FileNotFoundError, ValueError, RuntimeError) as e:
-        print(f" Initialization failed: {e}", file=sys.stderr)
+        error(f"Initialization failed: {e}")
         return False
 
-    # Step 2: Plan (create spec)
-    print("\n[PHASE 2/4] PLANNING")
-    print("-"*60)
+    # Set up logging (after we have run_id)
+    setup_logging(run_id)
+    logger = logging.getLogger(__name__)
+    logger.info("="*60)
+    logger.info("ADW Complete workflow started - Run ID: %s", run_id)
+    logger.info("Draft: %s | Branch: %s | Classification: %s",
+                draft_file_path, branch_name, draft_class)
+    logger.info("="*60)
+
     try:
-        spec_file_path = await adw_plan(run_id, draft_destination_path, draft_class)
-        if not spec_file_path:
-            print(" Planning failed: spec file was not created", file=sys.stderr)
-            return False
-    except (FileNotFoundError, ValueError, RuntimeError) as e:
-        print(f" Planning failed: {e}", file=sys.stderr)
+        # Phase 2-4: Plan, Implement, Test
+        spec_file_path = await _run_planning_phase(run_id, draft_destination_path, draft_class)
+        await _run_implementation_phase(spec_file_path)
+        await _run_testing_phase(run_id, spec_file_path)
+
+        # Success summary
+        console.print(Panel.fit(
+            f"[bold green]✓ WORKFLOW COMPLETED SUCCESSFULLY[/bold green]\n\n"
+            f"[cyan]Run ID:[/cyan] {run_id}\n"
+            f"[cyan]Branch:[/cyan] {branch_name}\n"
+            f"[cyan]Classification:[/cyan] {draft_class}\n"
+            f"[cyan]Spec File:[/cyan] {spec_file_path}",
+            border_style="green",
+            title="[bold]Success[/bold]"
+        ))
+        logger.info("="*60)
+        logger.info("COMPLETE WORKFLOW FINISHED SUCCESSFULLY")
+        logger.info("Run ID: %s | Branch: %s | Spec: %s", run_id, branch_name, spec_file_path)
+        logger.info("="*60)
+        return True
+    except (FileNotFoundError, ValueError, RuntimeError):
         return False
-
-    # Step 3: Implement
-    print("\n[PHASE 3/4] IMPLEMENTATION")
-    print("-"*60)
-    try:
-        success = await adw_implement(str(spec_file_path))
-        if not success:
-            print(" Implementation failed", file=sys.stderr)
-            return False
-    except (FileNotFoundError, ValueError, RuntimeError) as e:
-        print(f" Implementation failed: {e}", file=sys.stderr)
-        return False
-
-    # Step 4: Test loop
-    print("\n[PHASE 4/4] TESTING")
-    print("-"*60)
-    try:
-        test_folder = get_or_create_test_folder(run_id)
-        success = await adw_test_loop(str(test_folder), str(spec_file_path))
-        if not success:
-            print(" Testing failed: not all tests passed", file=sys.stderr)
-            return False
-    except (FileNotFoundError, ValueError, RuntimeError) as e:
-        print(f" Testing failed: {e}", file=sys.stderr)
-        return False
-
-    # Success!
-    print("\n" + "="*60)
-    print(" COMPLETE WORKFLOW FINISHED SUCCESSFULLY!")
-    print("="*60)
-    print(f"  Run ID: {run_id}")
-    print(f"  Branch: {branch_name}")
-    print(f"  Draft class: {draft_class}")
-    print(f"  Spec file: {spec_file_path}")
-    print("="*60 + "\n")
-
-    return True
 
 
 async def main():
     """Main orchestration function for the complete ADW flow."""
     parser = argparse.ArgumentParser(
-        description="Execute the complete Agentic Development Workflow: init � plan � implement � test"
+        description="Execute the complete Agentic Development Workflow: "
+        "init → plan → implement → test"
     )
     parser.add_argument("--draft", required=True, help="Path to the draft file to process")
     parser.add_argument("--run_id", help="Optional run ID (generated if not provided)")
@@ -110,8 +166,8 @@ async def main():
     args = parser.parse_args()
 
     try:
-        success = await adw_complete(args.draft, args.run_id, args.issue_id)
-        if not success:
+        workflow_success = await adw_complete(args.draft, args.run_id, args.issue_id)
+        if not workflow_success:
             sys.exit(1)
     except (FileNotFoundError, ValueError, RuntimeError) as e:
         print(f"Fatal error: {e}", file=sys.stderr)

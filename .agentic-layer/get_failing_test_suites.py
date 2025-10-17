@@ -4,6 +4,34 @@ from pathlib import Path
 from junitparser import JUnitXml, TestSuite, TestCase
 
 
+def _extract_failing_tests_from_suite(suite: TestSuite) -> TestSuite | None:
+    """
+    Extract failing tests from a test suite.
+
+    Args:
+        suite: TestSuite to process
+
+    Returns:
+        New TestSuite containing only failing tests, or None if no failures
+    """
+    failing_tests = []
+
+    for test in suite:
+        if not isinstance(test, TestCase):
+            continue
+        # Only include tests with errors or failures (not skipped)
+        if test.is_error or test.is_failure:
+            failing_tests.append(test)
+
+    if not failing_tests:
+        return None
+
+    new_suite = TestSuite(suite.name)
+    for test in failing_tests:
+        new_suite.add_testcase(test)
+    return new_suite
+
+
 def get_failing_test_suites(path) -> list[TestSuite]:
     """
     Parse all XML files in the given directory and return test suites containing only failing tests.
@@ -25,21 +53,9 @@ def get_failing_test_suites(path) -> list[TestSuite]:
             suites = [xml] if isinstance(xml, TestSuite) else xml
 
             for suite in suites:
-                # Create a new suite to hold only failing tests
-                failing_tests = []
-
-                for test in suite:
-                    if isinstance(test, TestCase):
-                        # Only include tests with errors (not failures or skipped)
-                        if test.is_error or test.is_failure:
-                            failing_tests.append(test)
-
-                # Only add suite if it has failing tests
-                if failing_tests:
-                    new_suite = TestSuite(suite.name)
-                    for test in failing_tests:
-                        new_suite.add_testcase(test)
-                    failing_suites.append(new_suite)
+                failing_suite = _extract_failing_tests_from_suite(suite)
+                if failing_suite:
+                    failing_suites.append(failing_suite)
 
         except (OSError, AttributeError, ImportError, ValueError) as e:
             # Skip files that can't be parsed

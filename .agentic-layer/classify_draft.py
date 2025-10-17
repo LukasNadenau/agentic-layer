@@ -5,6 +5,7 @@
 # ]
 # ///
 
+import logging
 from pydantic_ai import Agent
 from models import DraftClass, DraftClassification
 
@@ -28,5 +29,13 @@ async def classify_draft(draft_text: str) -> DraftClass:
     Returns:
         DraftClass: The classification (FEATURE or BUG)
     """
-    result = await agent.run(draft_text)
-    return result.output.draft_class
+    logger = logging.getLogger(__name__)
+    logger.debug("Classifying draft with Pydantic AI")
+
+    try:
+        result = await agent.run(draft_text)
+        logger.info("Draft classified as: %s", result.output.draft_class)
+        return result.output.draft_class
+    except Exception as e:
+        logger.error("Draft classification failed with Pydantic AI: %s", e, exc_info=True)
+        raise

@@ -1,3 +1,4 @@
+"""Git branch creation utility for ADW."""
 import subprocess
 import sys
 

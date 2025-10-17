@@ -6,8 +6,10 @@
 # ]
 # ///
 
+import logging
 from dotenv import load_dotenv
-from claude_agent_sdk import query, ClaudeAgentOptions
+from claude_agent_sdk import query
+from claude_options import get_default_claude_options
 
 load_dotenv()
 
@@ -23,19 +25,21 @@ async def run_tests(test_result_folder: str) -> bool:
     Returns:
         bool: True when ready, False otherwise
     """
+    logger = logging.getLogger(__name__)
+    logger.info("Running tests, results in: %s", test_result_folder)
+
     # Create the test command
     command = f"/test {test_result_folder}"
-
-    # Set up options with bypass permissions
-    options = ClaudeAgentOptions(
-        permission_mode="bypassPermissions",
-        setting_sources=["project"],
-        model="haiku"
-    )
+    logger.debug("Sending command: %s", command)
 
     # Use query to send the slash command
-    async for _ in query(prompt=command, options=options):
-        pass
+    options = get_default_claude_options(model="haiku")
+    try:
+        async for _ in query(prompt=command, options=options):
+            pass
+    except Exception as e:
+        logger.error("Test execution failed: %s", e, exc_info=True)
+        raise
 
-    print(" Tests command completed")
+    logger.info("Tests command completed")
     return True

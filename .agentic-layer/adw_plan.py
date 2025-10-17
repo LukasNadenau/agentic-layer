@@ -6,18 +6,22 @@ This script orchestrates the creation of specification files for a workflow run.
 # dependencies = [
 #   "claude-agent-sdk",
 #   "python-dotenv",
+#   "rich",
 # ]
 # ///
 
 import sys
 import asyncio
 import argparse
+import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
+from console import console
 from get_or_create_folders import get_or_create_run_folder
 from models import DraftClass
-from claude_agent_sdk import query, ClaudeAgentOptions
+from claude_agent_sdk import query
+from claude_options import get_default_claude_options
 
 load_dotenv()
 
@@ -34,6 +38,9 @@ async def adw_plan(run_id: str, draft_file_path: str, draft_class: DraftClass) -
     Returns:
         Path | None: Path to the spec file if successfully created, None otherwise
     """
+    logger = logging.getLogger(__name__)
+    logger.info("Starting planning phase for run %s", run_id)
+
     # Get or create run folder
     run_folder = get_or_create_run_folder(run_id)
 
@@ -46,37 +53,51 @@ async def adw_plan(run_id: str, draft_file_path: str, draft_class: DraftClass) -
     elif draft_class == DraftClass.BUG:
         command = f"/bug {run_id} {draft_file_path} {spec_file_path}"
     else:
-        raise ValueError(f"Unknown draft class: {draft_class}. Expected DraftClass.FEATURE or DraftClass.BUG.")
-
-    # Set up options with write restriction to spec file path only
-    options = ClaudeAgentOptions(
-        permission_mode="bypassPermissions",
-        setting_sources=["project"],
-        model="sonnet"
-    )
+        error_msg = (
+            f"Unknown draft class: {draft_class}. "
+            "Expected DraftClass.FEATURE or DraftClass.BUG."
+        )
+        logger.error(error_msg)
+        raise ValueError(error_msg)
 
     # Use query to send the slash command
-    async for _ in query(prompt=command, options=options):
-        pass
+    options = get_default_claude_options()
+    logger.debug("Sending command: %s", command)
+    try:
+        with console.status("[cyan]Claude Code is planning...[/cyan]"):
+            async for message in query(prompt=command, options=options):
+                logger.debug("Claude code message: %s", message)
+    except Exception as e:
+        logger.error("Claude Code SDK query failed: %s", e, exc_info=True)
+        raise
 
     # Check if spec file was created
     spec_exists = spec_file_path.exists()
 
     if spec_exists:
-        print(f"✓ Spec file created successfully at: {spec_file_path}")
+        console.print(f"[green]✓[/green] Spec file created successfully at: {spec_file_path}")
+        logger.info("Spec file created successfully: %s", spec_file_path)
         return spec_file_path
-    else:
-        print(f"✗ Spec file was not created at: {spec_file_path}")
-        return None
+
+    console.print(f"[red]✗[/red] Spec file was not created at: {spec_file_path}")
+    logger.error("Spec file was not created at expected path: %s", spec_file_path)
+    return None
 
 
 async def main():
     """Main orchestration function for the ADW planning flow."""
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description="Create specification file for Agentic Development Workflow")
+    parser = argparse.ArgumentParser(
+        description="Create specification file for Agentic Development Workflow"
+    )
     parser.add_argument("--run_id", required=True, help="The run identifier")
     parser.add_argument("--draft", required=True, help="Path to the draft file")
-    parser.add_argument("--draft_class", required=True, choices=["feature", "bug"], help="Classification of the draft (feature or bug)")
+    parser.add_argument(
+        "--draft_class",
+        required=True,
+        choices=["feature", "bug"],
+        help="Classification of the draft (feature or bug)"
+    )
 
     args = parser.parse_args()
 
