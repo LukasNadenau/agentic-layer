@@ -20,13 +20,19 @@ from dotenv import load_dotenv
 from console import console
 from get_or_create_folders import get_or_create_run_folder
 from models import DraftClass
-from claude_agent_sdk import query
-from claude_options import get_default_claude_options
+from coding_agent import call_coding_agent
+from agent_types import AgentType
+from arg_utils import add_agent_argument, parse_agent_type
 
 load_dotenv()
 
 
-async def adw_plan(run_id: str, draft_file_path: str, draft_class: DraftClass) -> Path | None:
+async def adw_plan(
+    run_id: str,
+    draft_file_path: str,
+    draft_class: DraftClass,
+    agent_type: AgentType = AgentType.CLAUDE
+) -> Path | None:
     """
     Creates a spec file by calling Claude Code with the appropriate command.
 
@@ -49,9 +55,9 @@ async def adw_plan(run_id: str, draft_file_path: str, draft_class: DraftClass) -
 
     # Determine which command to use based on draft class
     if draft_class == DraftClass.FEATURE:
-        command = f"/feature {run_id} {draft_file_path} {spec_file_path}"
+        slash_command = "feature"
     elif draft_class == DraftClass.BUG:
-        command = f"/bug {run_id} {draft_file_path} {spec_file_path}"
+        slash_command = "bug"
     else:
         error_msg = (
             f"Unknown draft class: {draft_class}. "
@@ -60,15 +66,16 @@ async def adw_plan(run_id: str, draft_file_path: str, draft_class: DraftClass) -
         logger.error(error_msg)
         raise ValueError(error_msg)
 
-    # Use query to send the slash command
-    options = get_default_claude_options()
-    logger.debug("Sending command: %s", command)
+    # Call the coding agent
     try:
-        with console.status("[cyan]Claude Code is planning...[/cyan]"):
-            async for message in query(prompt=command, options=options):
-                logger.debug("Claude code message: %s", message)
+        status_text = f"[cyan]{agent_type.value.capitalize()} is planning...[/cyan]"
+        with console.status(status_text):
+            await call_coding_agent(
+                agent_type, slash_command,
+                [run_id, draft_file_path, str(spec_file_path)]
+            )
     except Exception as e:
-        logger.error("Claude Code SDK query failed: %s", e, exc_info=True)
+        logger.error("Coding agent failed during planning: %s", e, exc_info=True)
         raise
 
     # Check if spec file was created
@@ -98,6 +105,7 @@ async def main():
         choices=["feature", "bug"],
         help="Classification of the draft (feature or bug)"
     )
+    add_agent_argument(parser)
 
     args = parser.parse_args()
 
@@ -105,7 +113,8 @@ async def main():
     draft_class = DraftClass.FEATURE if args.draft_class.lower() == "feature" else DraftClass.BUG
 
     try:
-        success = await adw_plan(args.run_id, args.draft, draft_class)
+        agent_type = parse_agent_type(args)
+        success = await adw_plan(args.run_id, args.draft, draft_class, agent_type)
         if not success:
             sys.exit(1)
     except (FileNotFoundError, ValueError, RuntimeError) as e:

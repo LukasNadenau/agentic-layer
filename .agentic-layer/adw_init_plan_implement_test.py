@@ -24,17 +24,21 @@ from adw_plan import adw_plan
 from adw_implement import adw_implement
 from adw_test_loop import adw_test_loop
 from get_or_create_folders import get_or_create_test_folder
+from agent_types import AgentType
+from arg_utils import add_agent_argument, parse_agent_type
 from rich.panel import Panel
 
 
-async def _run_planning_phase(run_id: str, draft_destination_path: str, draft_class) -> str:
+async def _run_planning_phase(
+    run_id: str, draft_destination_path: str, draft_class, agent_type: AgentType
+) -> str:
     """Execute the planning phase and return spec file path."""
     logger = logging.getLogger(__name__)
     console.print(phase_header("PLANNING", 2, 4))
     logger.info("Phase 2/4: Planning - Creating specification file")
 
     try:
-        spec_file_path = await adw_plan(run_id, draft_destination_path, draft_class)
+        spec_file_path = await adw_plan(run_id, draft_destination_path, draft_class, agent_type)
         if not spec_file_path:
             error("Planning failed: spec file was not created")
             logger.error("Planning failed: spec file was not created")
@@ -48,14 +52,14 @@ async def _run_planning_phase(run_id: str, draft_destination_path: str, draft_cl
         raise
 
 
-async def _run_implementation_phase(spec_file_path: str):
+async def _run_implementation_phase(spec_file_path: str, agent_type: AgentType):
     """Execute the implementation phase."""
     logger = logging.getLogger(__name__)
     console.print(phase_header("IMPLEMENTATION", 3, 4))
     logger.info("Phase 3/4: Implementation - Executing specification")
 
     try:
-        success_impl = await adw_implement(str(spec_file_path))
+        success_impl = await adw_implement(str(spec_file_path), agent_type)
         if not success_impl:
             error("Implementation failed")
             logger.error("Implementation failed")
@@ -68,7 +72,7 @@ async def _run_implementation_phase(spec_file_path: str):
         raise
 
 
-async def _run_testing_phase(run_id: str, spec_file_path: str):
+async def _run_testing_phase(run_id: str, spec_file_path: str, agent_type: AgentType):
     """Execute the testing phase."""
     logger = logging.getLogger(__name__)
     console.print(phase_header("TESTING", 4, 4))
@@ -76,7 +80,7 @@ async def _run_testing_phase(run_id: str, spec_file_path: str):
 
     try:
         test_folder = get_or_create_test_folder(run_id)
-        success_test = await adw_test_loop(str(test_folder), str(spec_file_path))
+        success_test = await adw_test_loop(str(test_folder), str(spec_file_path), agent_type)
         if not success_test:
             error("Testing failed: not all tests passed")
             logger.error("Testing failed: not all tests passed")
@@ -89,7 +93,12 @@ async def _run_testing_phase(run_id: str, spec_file_path: str):
         raise
 
 
-async def adw_complete(draft_file_path: str, run_id: str = None, issue_id: str = None) -> bool:
+async def adw_complete(
+    draft_file_path: str,
+    run_id: str = None,
+    issue_id: str = None,
+    agent_type: AgentType = AgentType.CLAUDE
+) -> bool:
     """Execute the complete ADW workflow.
 
     Args:
@@ -130,9 +139,11 @@ async def adw_complete(draft_file_path: str, run_id: str = None, issue_id: str =
 
     try:
         # Phase 2-4: Plan, Implement, Test
-        spec_file_path = await _run_planning_phase(run_id, draft_destination_path, draft_class)
-        await _run_implementation_phase(spec_file_path)
-        await _run_testing_phase(run_id, spec_file_path)
+        spec_file_path = await _run_planning_phase(
+            run_id, draft_destination_path, draft_class, agent_type
+        )
+        await _run_implementation_phase(spec_file_path, agent_type)
+        await _run_testing_phase(run_id, spec_file_path, agent_type)
 
         # Success summary
         console.print(Panel.fit(
@@ -162,11 +173,13 @@ async def main():
     parser.add_argument("--draft", required=True, help="Path to the draft file to process")
     parser.add_argument("--run_id", help="Optional run ID (generated if not provided)")
     parser.add_argument("--issue_id", help="Optional issue ID for branch naming")
+    add_agent_argument(parser)
 
     args = parser.parse_args()
 
     try:
-        workflow_success = await adw_complete(args.draft, args.run_id, args.issue_id)
+        agent_type = parse_agent_type(args)
+        workflow_success = await adw_complete(args.draft, args.run_id, args.issue_id, agent_type)
         if not workflow_success:
             sys.exit(1)
     except (FileNotFoundError, ValueError, RuntimeError) as e:

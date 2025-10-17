@@ -21,9 +21,13 @@ from console import console
 from run_tests import run_tests
 from get_failing_test_suites import get_failing_test_suites
 from resolve_test import resolve_test
+from agent_types import AgentType
+from arg_utils import add_agent_argument, parse_agent_type
 
 
-async def _resolve_failing_test_suites(failing_suites: list, spec_file_path: str):
+async def _resolve_failing_test_suites(
+    failing_suites: list, spec_file_path: str, agent_type: AgentType
+):
     """Resolve all failing test suites."""
     logger = logging.getLogger(__name__)
 
@@ -31,7 +35,7 @@ async def _resolve_failing_test_suites(failing_suites: list, spec_file_path: str
         console.print(f"  Resolving test suite: [yellow]{suite.name}[/yellow]")
         logger.info("Resolving test suite: %s", suite.name)
         try:
-            suite_success = await resolve_test(suite, spec_file_path)
+            suite_success = await resolve_test(suite, spec_file_path, agent_type)
             if not suite_success:
                 console.print(
                     f"  [yellow]⚠[/yellow] Warning: Resolution may not have "
@@ -49,7 +53,11 @@ async def _resolve_failing_test_suites(failing_suites: list, spec_file_path: str
             raise
 
 
-async def adw_test_loop(test_result_folder: str, spec_file_path: str) -> bool:
+async def adw_test_loop(
+    test_result_folder: str,
+    spec_file_path: str,
+    agent_type: AgentType = AgentType.CLAUDE
+) -> bool:
     """
     Run tests and resolve failures in a loop until all tests pass.
 
@@ -110,7 +118,7 @@ async def adw_test_loop(test_result_folder: str, spec_file_path: str) -> bool:
             logger.debug("Failing suite: %s", suite.name)
 
         # Resolve each failing test suite
-        await _resolve_failing_test_suites(failing_suites, spec_file_path)
+        await _resolve_failing_test_suites(failing_suites, spec_file_path, agent_type)
 
         # Clean up XML files for next iteration
         console.print("\n[blue][4/4][/blue] Cleaning up test results...")
@@ -145,11 +153,13 @@ async def main():
         help="Path to directory for test result XML files"
     )
     parser.add_argument("--spec", required=True, help="Path to the specification file")
+    add_agent_argument(parser)
 
     args = parser.parse_args()
 
     try:
-        success = await adw_test_loop(args.path, args.spec)
+        agent_type = parse_agent_type(args)
+        success = await adw_test_loop(args.path, args.spec, agent_type)
         if not success:
             sys.exit(1)
     except (FileNotFoundError, ValueError, RuntimeError) as e:

@@ -16,13 +16,14 @@ import argparse
 import logging
 from dotenv import load_dotenv
 from console import console
-from claude_agent_sdk import query
-from claude_options import get_default_claude_options
+from coding_agent import call_coding_agent
+from agent_types import AgentType
+from arg_utils import add_agent_argument, parse_agent_type
 
 load_dotenv()
 
 
-async def adw_implement(spec_file_path: str) -> bool:
+async def adw_implement(spec_file_path: str, agent_type: AgentType = AgentType.CLAUDE) -> bool:
     """
     Implements a spec file by calling Claude Code with the /implement command.
 
@@ -36,18 +37,12 @@ async def adw_implement(spec_file_path: str) -> bool:
     logger = logging.getLogger(__name__)
     logger.info("Starting implementation for spec: %s", spec_file_path)
 
-    # Create the implement command
-    command = f"/implement {spec_file_path}"
-    logger.debug("Sending command: %s", command)
-
-    # Use query to send the slash command
-    options = get_default_claude_options()
     try:
-        with console.status("[cyan]Claude Code is implementing...[/cyan]"):
-            async for message in query(prompt=command, options=options):
-                logger.debug("Claude code message: %s", message)
+        status_text = f"[cyan]{agent_type.value.capitalize()} is implementing...[/cyan]"
+        with console.status(status_text):
+            await call_coding_agent(agent_type, "implement", [spec_file_path])
     except Exception as e:
-        logger.error("Claude Code SDK query failed during implementation: %s", e, exc_info=True)
+        logger.error("Coding agent failed during implementation: %s", e, exc_info=True)
         raise
 
     console.print(f"[green]✓[/green] Implementation command completed for spec: {spec_file_path}")
@@ -62,11 +57,13 @@ async def main():
         description="Implement specification file for Agentic Development Workflow"
     )
     parser.add_argument("--spec", required=True, help="Path to the spec file")
+    add_agent_argument(parser)
 
     args = parser.parse_args()
 
     try:
-        success = await adw_implement(args.spec)
+        agent_type = parse_agent_type(args)
+        success = await adw_implement(args.spec, agent_type)
         if not success:
             sys.exit(1)
     except (FileNotFoundError, ValueError, RuntimeError) as e:

@@ -9,14 +9,18 @@
 
 import logging
 from dotenv import load_dotenv
-from claude_agent_sdk import query
-from claude_options import get_default_claude_options
+from coding_agent import call_coding_agent
+from agent_types import AgentType
 from junitparser import TestSuite
 
 load_dotenv()
 
 
-async def resolve_test(test_suite: TestSuite, spec_file_path: str) -> bool:
+async def resolve_test(
+    test_suite: TestSuite,
+    spec_file_path: str,
+    agent_type: AgentType = AgentType.CLAUDE
+) -> bool:
     """
     Resolves failed tests in a test suite by calling Claude Code with
     the /resolve_failed_test command.
@@ -35,15 +39,11 @@ async def resolve_test(test_suite: TestSuite, spec_file_path: str) -> bool:
     # Stringify the test suite to XML format
     stringified_tests = test_suite.tostring()
 
-    # Create the resolve_failed_test command
-    command = f"/resolve_failed_test {stringified_tests} {spec_file_path}"
-    logger.debug("Sending command to resolve tests")
-
-    # Use query to send the slash command
-    options = get_default_claude_options()
+    # Call the coding agent to resolve tests
     try:
-        async for message in query(prompt=command, options=options):
-            logger.debug("Claude code message: %s", message)
+        await call_coding_agent(
+            agent_type, "resolve_failed_test", [stringified_tests, spec_file_path]
+        )
     except Exception as e:
         logger.error("Test resolution failed for suite %s: %s", test_suite.name, e, exc_info=True)
         raise
