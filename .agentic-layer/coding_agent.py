@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-import re
 from pathlib import Path
 
 from agent_types import AgentType
@@ -74,42 +73,11 @@ def _build_claude_command(slash_command: str, arguments: list[str]) -> str:
 
 def _build_copilot_command(slash_command: str, arguments: list[str]) -> str:
     """Build GitHub Copilot CLI prompt string."""
-    prompt_template = _read_slash_command_file(slash_command)
-    final_prompt = _substitute_arguments(prompt_template, arguments)
-    return final_prompt
-
-
-def _read_slash_command_file(slash_command: str) -> str:
-    """Read slash command file from .claude/commands/."""
     file_path = Path(".claude") / "commands" / f"{slash_command}.md"
-    logger.debug("Reading slash command file: %s", file_path)
-
-    if not file_path.exists():
-        error_msg = f"Slash command file not found: {file_path}"
-        logger.error(error_msg)
-        raise FileNotFoundError(error_msg)
-
-    content = file_path.read_text(encoding="utf-8")
-    logger.debug("Read %d characters from %s", len(content), file_path)
-    return content
-
-
-def _substitute_arguments(prompt_template: str, arguments: list[str]) -> str:
-    """Substitute $1, $2, $3... placeholders with actual arguments."""
-    # Replace $N with arguments[N-1]
-    def replace_placeholder(match):
-        arg_num = int(match.group(1))
-        if arg_num <= len(arguments):
-            return arguments[arg_num - 1]
-        logger.warning(
-            "Placeholder $%d found but only %d arguments provided",
-            arg_num, len(arguments)
-        )
-        return match.group(0)  # Keep placeholder if no argument
-
-    result = re.sub(r'\$(\d+)', replace_placeholder, prompt_template)
-    logger.debug("Substituted %d arguments into prompt template", len(arguments))
-    return result
+    args_str = " ".join(arguments)
+    prompt = f"execute the prompt specified in {file_path} using the following arguments: {args_str}"
+    logger.debug("Built Copilot prompt: %s", prompt)
+    return prompt
 
 
 async def _execute_claude_agent(command: str, model: str) -> None:
