@@ -64,7 +64,7 @@ async def adw_complete(draft_file_path: str, run_id: str = None, issue_id: str =
     print("\n[PHASE 3/4] IMPLEMENTATION")
     print("-"*60)
     try:
-        success = await adw_implement(run_id, str(spec_file_path))
+        success = await adw_implement(str(spec_file_path))
         if not success:
             print(" Implementation failed", file=sys.stderr)
             return False
