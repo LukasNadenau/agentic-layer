@@ -153,7 +153,7 @@ async def adw_init(
     draft_class, branch_name = await _classify_and_create_branch(run_id, draft_text, issue_id)
 
     # Print summary
-    _print_initialization_summary(run_id, draft_file_path, draft_class, branch_name)
+    _print_initialization_summary(run_id, draft_destination_path, draft_class, branch_name)
 
     return run_id, draft_destination_path, branch_name, draft_class
 
