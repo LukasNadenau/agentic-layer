@@ -2,3 +2,4 @@
 __pycache__/
 example-prompts/
 .agentic-runs/
+.pytest_cache/

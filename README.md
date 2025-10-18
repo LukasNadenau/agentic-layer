@@ -96,6 +96,46 @@ You can also run individual phases separately:
 - **Implementation only**: `uv run .agentic-layer/adw_implement.py --run_id <run_id> --spec path/to/spec.md`
 - **Testing only**: `uv run .agentic-layer/adw_test_loop.py --test_folder path/to/tests --spec path/to/spec.md`
 
+## Testing
+
+The project uses pytest for unit testing. Tests are located in the `tests/` directory.
+
+### Running Tests
+
+Run all tests:
+```bash
+uv run pytest
+```
+
+Run tests with verbose output:
+```bash
+uv run pytest -v
+```
+
+Run specific test file:
+```bash
+uv run pytest tests/test_generate_run_id.py
+```
+
+Run specific test:
+```bash
+uv run pytest tests/test_generate_run_id.py::test_generate_run_id_length
+```
+
+### Test Structure
+
+- `tests/` - Root directory for all test files
+- `tests/test_*.py` - Test files following pytest naming convention
+- Test functions must start with `test_`
+
+### Writing New Tests
+
+1. Create a new file in `tests/` starting with `test_`
+2. Import the module to test from `.agentic-layer/`
+3. Write test functions starting with `test_`
+4. Use clear arrange-act-assert structure
+5. Run pytest to verify tests pass
+
 ## Project Structure
 
 ```
