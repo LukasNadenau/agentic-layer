@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import platform
 from pathlib import Path
 
 from agent_types import AgentType
@@ -98,7 +99,18 @@ async def _execute_copilot_agent(prompt: str) -> None:
     """Execute prompt using GitHub Copilot CLI."""
     logger.info("Executing GitHub Copilot CLI")
 
-    command_list = ["copilot", "-p", prompt, "--allow-all-tools"]
+    # On Windows, copilot is a PowerShell script that needs to be executed via PowerShell
+    if platform.system() == "Windows":
+        # Escape single quotes in the prompt for PowerShell
+        escaped_prompt = prompt.replace("'", "''")
+        command_list = [
+            "powershell",
+            "-Command",
+            f"copilot -p '{escaped_prompt}' --allow-all-tools"
+        ]
+    else:
+        command_list = ["copilot", "-p", prompt, "--allow-all-tools"]
+
     logger.debug("Copilot CLI command: %s", command_list)
 
     try:
