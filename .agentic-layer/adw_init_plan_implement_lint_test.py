@@ -22,6 +22,7 @@ from logging_config import setup_logging
 from adw_init import adw_init
 from adw_plan import adw_plan
 from adw_implement import adw_implement
+from adw_lint import adw_lint
 from adw_test_loop import adw_test_loop
 from get_or_create_folders import get_or_create_test_folder
 from agent_types import AgentType
@@ -34,8 +35,8 @@ async def _run_planning_phase(
 ) -> str:
     """Execute the planning phase and return spec file path."""
     logger = logging.getLogger(__name__)
-    console.print(phase_header("PLANNING", 2, 4))
-    logger.info("Phase 2/4: Planning - Creating specification file")
+    console.print(phase_header("PLANNING", 2, 5))
+    logger.info("Phase 2/5: Planning - Creating specification file")
 
     try:
         spec_file_path = await adw_plan(run_id, draft_destination_path, draft_class, agent_type)
@@ -55,8 +56,8 @@ async def _run_planning_phase(
 async def _run_implementation_phase(spec_file_path: str, agent_type: AgentType):
     """Execute the implementation phase."""
     logger = logging.getLogger(__name__)
-    console.print(phase_header("IMPLEMENTATION", 3, 4))
-    logger.info("Phase 3/4: Implementation - Executing specification")
+    console.print(phase_header("IMPLEMENTATION", 3, 5))
+    logger.info("Phase 3/5: Implementation - Executing specification")
 
     try:
         success_impl = await adw_implement(str(spec_file_path), agent_type)
@@ -72,11 +73,31 @@ async def _run_implementation_phase(spec_file_path: str, agent_type: AgentType):
         raise
 
 
+async def _run_linting_phase(spec_file_path: str, agent_type: AgentType):
+    """Execute the linting phase."""
+    logger = logging.getLogger(__name__)
+    console.print(phase_header("LINTING", 4, 5))
+    logger.info("Phase 4/5: Linting - Running code quality checks")
+    
+    try:
+        success_lint = await adw_lint(str(spec_file_path), agent_type)
+        if not success_lint:
+            error("Linting failed")
+            logger.error("Linting failed")
+            raise RuntimeError("Linting failed")
+        success("Linting completed")
+        logger.info("Linting completed successfully")
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
+        error(f"Linting failed: {e}")
+        logger.error("Linting failed: %s", e, exc_info=True)
+        raise
+
+
 async def _run_testing_phase(run_id: str, spec_file_path: str, agent_type: AgentType):
     """Execute the testing phase."""
     logger = logging.getLogger(__name__)
-    console.print(phase_header("TESTING", 4, 4))
-    logger.info("Phase 4/4: Testing - Running test validation loop")
+    console.print(phase_header("TESTING", 5, 5))
+    logger.info("Phase 5/5: Testing - Running test validation loop")
 
     try:
         test_folder = get_or_create_test_folder(run_id)
@@ -117,7 +138,7 @@ async def adw_complete(
     ))
 
     # Phase 1: Initialize
-    console.print(phase_header("INITIALIZATION", 1, 4))
+    console.print(phase_header("INITIALIZATION", 1, 5))
     console.rule("[cyan]Starting initialization...[/cyan]")
 
     try:
@@ -138,11 +159,12 @@ async def adw_complete(
     logger.info("="*60)
 
     try:
-        # Phase 2-4: Plan, Implement, Test
+        # Phase 2-5: Plan, Implement, Lint, Test
         spec_file_path = await _run_planning_phase(
             run_id, draft_destination_path, draft_class, agent_type
         )
         await _run_implementation_phase(spec_file_path, agent_type)
+        await _run_linting_phase(spec_file_path, agent_type)
         await _run_testing_phase(run_id, spec_file_path, agent_type)
 
         # Success summary
@@ -168,7 +190,7 @@ async def main():
     """Main orchestration function for the complete ADW flow."""
     parser = argparse.ArgumentParser(
         description="Execute the complete Agentic Development Workflow: "
-        "init → plan → implement → test"
+        "init → plan → implement → lint → test"
     )
     parser.add_argument("--draft", required=True, help="Path to the draft file to process")
     parser.add_argument("--run_id", help="Optional run ID (generated if not provided)")
