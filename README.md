@@ -19,7 +19,7 @@ ADW orchestrates an end-to-end development workflow using AI agents (via Pydanti
 
 ## Workflow Phases
 
-When you run `adw_init_plan_implement_test.py`, the system executes four phases:
+When you run `adw_init_plan_implement_test_lint.py`, the system executes four phases:
 
 ### Phase 1: Initialization
 
@@ -72,19 +72,19 @@ ANTHROPIC_API_KEY=your-api-key
 Execute the entire workflow from draft to tested implementation:
 
 ```bash
-uv run .agentic-layer/adw_init_plan_implement_test.py --draft path/to/your/draft.md
+uv run .agentic-layer/adw_init_plan_implement_test_lint.py --draft path/to/your/draft.md
 ```
 
 ### With Custom Run ID
 
 ```bash
-uv run .agentic-layer/adw_init_plan_implement_test.py --draft path/to/your/draft.md --run_id my_custom_id
+uv run .agentic-layer/adw_init_plan_implement_test_lint.py --draft path/to/your/draft.md --run_id my_custom_id
 ```
 
 ### With Issue ID
 
 ```bash
-uv run .agentic-layer/adw_init_plan_implement_test.py --draft path/to/your/draft.md --issue_id ISSUE-123
+uv run .agentic-layer/adw_init_plan_implement_test_lint.py --draft path/to/your/draft.md --issue_id ISSUE-123
 ```
 
 ### Individual Phase Scripts
@@ -141,7 +141,7 @@ uv run pytest tests/test_generate_run_id.py::test_generate_run_id_length
 ```
 agentic-layer/
 ├── .agentic-layer/          # Core workflow scripts
-│   ├── adw_init_plan_implement_test.py  # Complete workflow orchestration
+│   ├── adw_init_plan_implement_test_lint.py  # Complete workflow orchestration
 │   ├── adw_init.py          # Phase 1: Initialization
 │   ├── adw_plan.py          # Phase 2: Planning
 │   ├── adw_implement.py     # Phase 3: Implementation
