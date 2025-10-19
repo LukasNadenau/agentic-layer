@@ -1,5 +1,5 @@
 ---
-argument-hint: [run_id] [spec_file]
+argument-hint: [run_id] [spec_file] [review_json_path]
 description: Review implementation against specification
 ---
 
@@ -11,6 +11,7 @@ Follow the `Instructions` below to **review work done against a specification fi
 
 run_id: $1
 spec_file: $2 (optional - if not provided, review will be based on git diff only)
+review_json_path: $3 (path where review.json should be written)
 
 ## Instructions
 
@@ -28,12 +29,12 @@ spec_file: $2 (optional - if not provided, review will be based on git diff only
   - IMPORTANT: Output your result in JSON format based on the `Report` section below.
   - IMPORTANT: Do not include any additional text, explanations, or markdown formatting
   - We'll immediately run JSON.parse() on the output, so make sure it's valid JSON
-  - IMPORTANT: Write the JSON output to the file: `${RUN_DIRECTORY}/${run_id}/review/review.json`
+  - IMPORTANT: Write the JSON output to the file: `${review_json_path}`
 - Ultra think as you work through the review process. Focus on the critical functionality paths and the user experience. Don't report issues if they are not critical to the feature.
 
 ## Report
 
-- IMPORTANT: Write results exclusively as a JSON object based on the `Output Structure` section below to `${RUN_DIRECTORY}/${run_id}/review/review.json`
+- IMPORTANT: Write results exclusively as a JSON object based on the `Output Structure` section below to `${review_json_path}`
 - `success` should be `true` if there are NO BLOCKING issues (implementation matches spec for critical functionality)
 - `success` should be `false` ONLY if there are BLOCKING issues that prevent the work from being released
 - `review_issues` can contain issues of any severity (skippable, tech_debt, or blocker)
@@ -60,7 +61,7 @@ spec_file: $2 (optional - if not provided, review will be based on git diff only
 
 ## Example Output
 
-Write to `${RUN_DIRECTORY}/${run_id}/review/review.json`:
+Write to `${review_json_path}`:
 
 ```json
 {

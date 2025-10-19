@@ -13,6 +13,7 @@ until no blocker issues remain.
 
 import json
 import logging
+from pathlib import Path
 
 from console import console
 from coding_agent import call_coding_agent
@@ -20,7 +21,12 @@ from get_or_create_folders import get_or_create_review_folder
 from agent_types import AgentType
 
 
-async def adw_review(run_id: str, spec_file_path: str, agent_type: AgentType) -> bool:
+async def adw_review(
+    run_id: str,
+    spec_file_path: str,
+    agent_type: AgentType,
+    review_json_path: str | None = None
+) -> bool:
     # pylint: disable=too-many-locals,too-many-statements
     """
     Run review and patch loop until no blocker issues remain.
@@ -29,6 +35,8 @@ async def adw_review(run_id: str, spec_file_path: str, agent_type: AgentType) ->
         run_id: The run identifier for this workflow execution
         spec_file_path: Path to the specification file
         agent_type: Type of coding agent to use (CLAUDE or COPILOT)
+        review_json_path: Optional path where the review JSON output should be written.
+                         If not provided, will be constructed as {review_folder}/review.json
 
     Returns:
         bool: True if review passed (no blocker issues), False if max iterations reached
@@ -39,37 +47,40 @@ async def adw_review(run_id: str, spec_file_path: str, agent_type: AgentType) ->
     iteration = 0
     max_iterations = 5
 
+    # Determine review JSON path - construct if not provided
+    if review_json_path is None:
+        review_folder = get_or_create_review_folder(run_id)
+        review_json_path_obj = review_folder / "review.json"
+    else:
+        review_json_path_obj = Path(review_json_path)
+
     while iteration < max_iterations:
         iteration += 1
         console.rule(f"[cyan]Review Loop Iteration {iteration}[/cyan]")
         logger.info("Review loop iteration %s starting", iteration)
 
-        # Step 1: Create/get review folder
-        review_folder = get_or_create_review_folder(run_id)
-        review_json_path = review_folder / "review.json"
-
-        # Step 2: Run review command
+        # Step 1: Run review command
         console.print("\n[blue][1/3][/blue] Running review...")
         logger.info("Calling review agent")
         try:
             await call_coding_agent(
-                agent_type, "review", [run_id, str(spec_file_path)]
+                agent_type, "review", [run_id, str(spec_file_path), str(review_json_path_obj)]
             )
         except Exception as e:
             logger.error("Review command failed: %s", e, exc_info=True)
             raise RuntimeError(f"Review command failed: {e}") from e
 
-        # Step 3: Parse review results
+        # Step 2: Parse review results
         console.print("\n[blue][2/3][/blue] Parsing review results...")
-        logger.debug("Reading review JSON from: %s", review_json_path)
+        logger.debug("Reading review JSON from: %s", review_json_path_obj)
 
-        if not review_json_path.exists():
-            error_msg = f"Review JSON not found at {review_json_path}"
+        if not review_json_path_obj.exists():
+            error_msg = f"Review JSON not found at {review_json_path_obj}"
             logger.error(error_msg)
             raise FileNotFoundError(error_msg)
 
         try:
-            with open(review_json_path, 'r', encoding='utf-8') as f:
+            with open(review_json_path_obj, 'r', encoding='utf-8') as f:
                 review_data = json.load(f)
         except json.JSONDecodeError as e:
             logger.error("Failed to parse review JSON: %s", e, exc_info=True)
