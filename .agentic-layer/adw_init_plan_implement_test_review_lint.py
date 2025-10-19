@@ -1,6 +1,7 @@
 """Agentic Development Workflow Complete Orchestration Script.
 
-This script orchestrates the complete workflow from initialization through testing.
+This script orchestrates the complete workflow from initialization through linting,
+including the review phase.
 """
 # /// script
 # dependencies = [
@@ -24,6 +25,7 @@ from adw_plan import adw_plan
 from adw_implement import adw_implement
 from adw_lint import adw_lint
 from adw_test_loop import adw_test_loop
+from adw_review import adw_review
 from get_or_create_folders import get_or_create_test_folder
 from agent_types import AgentType
 from arg_utils import add_agent_argument, parse_agent_type
@@ -35,8 +37,8 @@ async def _run_planning_phase(
 ) -> str:
     """Execute the planning phase and return spec file path."""
     logger = logging.getLogger(__name__)
-    console.print(phase_header("PLANNING", 2, 5))
-    logger.info("Phase 2/5: Planning - Creating specification file")
+    console.print(phase_header("PLANNING", 2, 6))
+    logger.info("Phase 2/6: Planning - Creating specification file")
 
     try:
         spec_file_path = await adw_plan(run_id, draft_destination_path, draft_class, agent_type)
@@ -56,8 +58,8 @@ async def _run_planning_phase(
 async def _run_implementation_phase(spec_file_path: str, agent_type: AgentType):
     """Execute the implementation phase."""
     logger = logging.getLogger(__name__)
-    console.print(phase_header("IMPLEMENTATION", 3, 5))
-    logger.info("Phase 3/5: Implementation - Executing specification")
+    console.print(phase_header("IMPLEMENTATION", 3, 6))
+    logger.info("Phase 3/6: Implementation - Executing specification")
 
     try:
         success_impl = await adw_implement(str(spec_file_path), agent_type)
@@ -73,12 +75,32 @@ async def _run_implementation_phase(spec_file_path: str, agent_type: AgentType):
         raise
 
 
+async def _run_review_phase(run_id: str, spec_file_path: str, agent_type: AgentType):
+    """Execute the review phase."""
+    logger = logging.getLogger(__name__)
+    console.print(phase_header("REVIEW", 5, 6))
+    logger.info("Phase 5/6: Review - Validating implementation against specification")
+
+    try:
+        success_review = await adw_review(run_id, str(spec_file_path), agent_type)
+        if not success_review:
+            error("Review failed: blocker issues remain after max iterations")
+            logger.error("Review failed: blocker issues remain after max iterations")
+            raise RuntimeError("Review failed: blocker issues remain after max iterations")
+        success("Review completed - no blocker issues")
+        logger.info("Review completed successfully - no blocker issues")
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
+        error(f"Review failed: {e}")
+        logger.error("Review failed: %s", e, exc_info=True)
+        raise
+
+
 async def _run_linting_phase(spec_file_path: str, agent_type: AgentType):
     """Execute the linting phase."""
     logger = logging.getLogger(__name__)
-    console.print(phase_header("LINTING", 5, 5))
-    logger.info("Phase 5/5: Linting - Running code quality checks")
-    
+    console.print(phase_header("LINTING", 6, 6))
+    logger.info("Phase 6/6: Linting - Running code quality checks")
+
     try:
         success_lint = await adw_lint(str(spec_file_path), agent_type)
         if not success_lint:
@@ -96,8 +118,8 @@ async def _run_linting_phase(spec_file_path: str, agent_type: AgentType):
 async def _run_testing_phase(run_id: str, spec_file_path: str, agent_type: AgentType):
     """Execute the testing phase."""
     logger = logging.getLogger(__name__)
-    console.print(phase_header("TESTING", 4, 5))
-    logger.info("Phase 4/5: Testing - Running test validation loop")
+    console.print(phase_header("TESTING", 4, 6))
+    logger.info("Phase 4/6: Testing - Running test validation loop")
 
     try:
         test_folder = get_or_create_test_folder(run_id)
@@ -138,7 +160,7 @@ async def adw_complete(
     ))
 
     # Phase 1: Initialize
-    console.print(phase_header("INITIALIZATION", 1, 5))
+    console.print(phase_header("INITIALIZATION", 1, 6))
     console.rule("[cyan]Starting initialization...[/cyan]")
 
     try:
@@ -159,12 +181,13 @@ async def adw_complete(
     logger.info("="*60)
 
     try:
-        # Phase 2-5: Plan, Implement, Test, Lint
+        # Phase 2-6: Plan, Implement, Test, Review, Lint
         spec_file_path = await _run_planning_phase(
             run_id, draft_destination_path, draft_class, agent_type
         )
         await _run_implementation_phase(spec_file_path, agent_type)
         await _run_testing_phase(run_id, spec_file_path, agent_type)
+        await _run_review_phase(run_id, spec_file_path, agent_type)
         await _run_linting_phase(spec_file_path, agent_type)
 
         # Success summary
@@ -190,7 +213,7 @@ async def main():
     """Main orchestration function for the complete ADW flow."""
     parser = argparse.ArgumentParser(
         description="Execute the complete Agentic Development Workflow: "
-        "init → plan → implement → test → lint"
+        "init → plan → implement → test → review → lint"
     )
     parser.add_argument("--draft", required=True, help="Path to the draft file to process")
     parser.add_argument("--run_id", help="Optional run ID (generated if not provided)")

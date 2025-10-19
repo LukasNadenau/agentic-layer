@@ -37,3 +37,11 @@ def get_log_file_path(run_id: str) -> Path:
     run_path = get_or_create_run_folder(run_id)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     return run_path / f"{run_id}_adw_{timestamp}.log"
+
+def get_or_create_review_folder(run_id):
+    """Creates a 'review' folder inside the run folder for the given run ID."""
+    run_path = get_or_create_run_folder(run_id)
+    review_path = run_path / "review"
+    review_path.mkdir(parents=True, exist_ok=True)
+
+    return review_path
