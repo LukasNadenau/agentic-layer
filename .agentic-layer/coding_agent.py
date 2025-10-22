@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import platform
+import subprocess
 from pathlib import Path
 
 from agent_types import AgentType
@@ -114,21 +115,18 @@ async def _execute_copilot_agent(prompt: str) -> None:
     logger.debug("Copilot CLI command: %s", command_list)
 
     try:
-        process = await asyncio.create_subprocess_exec(
-            *command_list,
+        process = subprocess.Popen(
+            command_list,
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.STDOUT
         )
+        for line in process.stdout:
+            logger.debug("Copilot output: %s", line.decode('utf-8', errors='replace').rstrip())
 
-        stdout, stderr = await process.communicate()
+        process.wait()
 
-        stdout_str = stdout.decode('utf-8', errors='replace')
+        _, stderr = await process.communicate()
         stderr_str = stderr.decode('utf-8', errors='replace')
-
-        if stdout_str:
-            logger.debug("Copilot stdout: %s", stdout_str)
-        if stderr_str:
-            logger.debug("Copilot stderr: %s", stderr_str)
 
         if process.returncode != 0:
             error_msg = (
