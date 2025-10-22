@@ -1,6 +1,6 @@
 # Agentic Development Workflow (ADW)
 
-An AI-powered complete development workflow automation system that takes you from idea to tested implementation. Transform a draft document into fully implemented and tested code through an automated four-phase process: initialization, planning, implementation, and testing.
+An AI-powered complete development workflow automation system that takes you from idea to tested implementation. Transform a draft document into fully implemented, tested, reviewed, and linted code through an automated six-phase process: initialization, planning, implementation, testing, review, and linting.
 
 ## Overview
 
@@ -13,13 +13,13 @@ ADW orchestrates an end-to-end development workflow using AI agents (via Pydanti
 - **Smart Branch Naming**: Generates meaningful git branch names following conventions (e.g., `feat_run_abc123_add_user_auth`)
 - **Specification Generation**: Creates detailed technical specs from your draft ideas
 - **Automated Implementation**: AI agents implement code based on the generated specification
-- **Test Loop**: Runs tests repeatedly, analyzing failures and fixing issues until all tests pass
+- **Test Loop**: Runs tests, reviews, and linting repeatedly, analyzing failures and fixing issues until all tests pass
 - **Organized Run Management**: Creates structured folders for each development run in `.agentic-runs/`
 - **Git Integration**: Automatically creates and checks out branches for your work
 
 ## Workflow Phases
 
-When you run `adw_init_plan_implement_test_lint.py`, the system executes four phases:
+When you run `adw_init_plan_implement_test_lint.py`, the system executes six phases:
 
 ### Phase 1: Initialization
 
@@ -47,6 +47,20 @@ When you run `adw_init_plan_implement_test_lint.py`, the system executes four ph
 2. **Analyze Failures**: Identifies and diagnoses test failures
 3. **Fix Issues**: Automatically fixes failing tests
 4. **Loop**: Repeats until all tests pass or max iterations reached
+
+### Phase 5: Review
+
+1. **Review Implementation**: AI agent validates code against specification
+2. **Identify Issues**: Detects blocker and non-blocker issues
+3. **Fix Blockers**: Automatically fixes blocker issues
+4. **Loop**: Repeats until no blocker issues remain or max iterations reached
+
+### Phase 6: Linting
+
+1. **Run Linters**: Executes code quality and style checks
+2. **Analyze Issues**: Identifies linting violations
+3. **Fix Violations**: Automatically fixes code quality issues
+4. **Verify**: Ensures all linting checks pass
 
 ## Setup
 
