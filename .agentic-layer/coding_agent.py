@@ -117,21 +117,25 @@ async def _execute_copilot_agent(prompt: str) -> None:
     try:
         process = subprocess.Popen(
             command_list,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT
+            bufsize=1,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding='utf-8',
+            errors='replace'
         )
+        
+        # Read output line by line
         for line in process.stdout:
-            logger.debug("Copilot output: %s", line.decode('utf-8', errors='replace').rstrip())
-
+            logger.debug("Copilot output: %s", line.rstrip())
+        
+        # Wait for process to complete
         process.wait()
-
-        _, stderr = await process.communicate()
-        stderr_str = stderr.decode('utf-8', errors='replace')
 
         if process.returncode != 0:
             error_msg = (
                 f"GitHub Copilot CLI failed with exit code "
-                f"{process.returncode}: {stderr_str}"
+                f"{process.returncode}"
             )
             logger.error(error_msg)
             raise RuntimeError(error_msg)
