@@ -146,7 +146,7 @@ async def adw_review(
 
         # Step 7: Clean up JSON for next iteration
         logger.debug("Cleaning up review JSON for next iteration")
-        review_json_path.unlink(missing_ok=True)
+        review_json_path_obj.unlink(missing_ok=True)
 
         logger.info("Review loop iteration %s complete", iteration)
 
