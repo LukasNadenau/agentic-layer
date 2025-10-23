@@ -107,10 +107,10 @@ async def _execute_copilot_agent(prompt: str) -> None:
         command_list = [
             "powershell",
             "-Command",
-            f"copilot -p '{escaped_prompt}' --allow-all-tools"
+            f"copilot -p '{escaped_prompt}' --allow-all-tools --allow-all-paths"
         ]
     else:
-        command_list = ["copilot", "-p", prompt, "--allow-all-tools"]
+        command_list = ["copilot", "-p", prompt, "--allow-all-tools", "--allow-all-paths"]
 
     logger.debug("Copilot CLI command: %s", command_list)
 
