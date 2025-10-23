@@ -119,24 +119,36 @@ async def _execute_copilot_agent(prompt: str) -> None:
             command_list,
             bufsize=1,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stderr=subprocess.PIPE,
             text=True,
             encoding='utf-8',
             errors='replace'
         )
         
         # Read output line by line
+        stdout_lines = []
+        stderr_lines = []
+        
         for line in process.stdout:
             logger.debug("Copilot output: %s", line.rstrip())
+            stdout_lines.append(line)
+        
+        # Read stderr
+        for line in process.stderr:
+            logger.debug("Copilot error: %s", line.rstrip())
+            stderr_lines.append(line)
         
         # Wait for process to complete
         process.wait()
 
         if process.returncode != 0:
+            stderr_output = ''.join(stderr_lines).strip()
             error_msg = (
                 f"GitHub Copilot CLI failed with exit code "
                 f"{process.returncode}"
             )
+            if stderr_output:
+                error_msg += f"\nStderr: {stderr_output}"
             logger.error(error_msg)
             raise RuntimeError(error_msg)
 
