@@ -101,13 +101,16 @@ async def _execute_copilot_agent(prompt: str) -> None:
     logger.info("Executing GitHub Copilot CLI")
 
     # On Windows, copilot is a PowerShell script that needs to be executed via PowerShell
+    # Build the entire command as a single string for PowerShell's -Command parameter
     if platform.system() == "Windows":
-        # Escape single quotes in the prompt for PowerShell
+        # Escape single quotes in the prompt by doubling them for PowerShell
         escaped_prompt = prompt.replace("'", "''")
+        # Build the full copilot command as a single string
+        copilot_cmd = f"copilot -p '{escaped_prompt}' --allow-all-tools --allow-all-paths"
         command_list = [
             "powershell",
             "-Command",
-            f"copilot -p '{escaped_prompt}' --allow-all-tools --allow-all-paths"
+            copilot_cmd
         ]
     else:
         command_list = ["copilot", "-p", prompt, "--allow-all-tools", "--allow-all-paths"]
