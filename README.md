@@ -157,28 +157,3 @@ uv run pytest tests/test_generate_run_id.py::test_generate_run_id_length
 3. Write test functions starting with `test_`
 4. Use clear arrange-act-assert structure
 5. Run pytest to verify tests pass
-
-## Project Structure
-
-```
-agentic-layer/
-├── .agentic-layer/          # Core workflow scripts
-│   ├── adw_init_plan_implement_test_lint.py  # Complete workflow orchestration
-│   ├── adw_init.py          # Phase 1: Initialization
-│   ├── adw_plan.py          # Phase 2: Planning
-│   ├── adw_implement.py     # Phase 3: Implementation
-│   ├── adw_test_loop.py     # Phase 4: Testing
-│   ├── classify_draft.py    # AI draft classification
-│   ├── generate_branch_name.py  # AI branch name generation
-│   ├── models.py            # Pydantic models
-│   └── ...                  # Supporting utilities
-├── .agentic-runs/           # Run output directory
-│   └── {run_id}/            # Individual run folders
-│       ├── draft_{run_id}.md     # Original draft
-│       ├── spec_{run_id}.md      # Generated specification
-│       └── tests/                # Test results
-│           ├── test_results_1.xml
-│           └── ...
-├── example-prompts/         # Example draft templates
-└── .env                     # Environment configuration
-```
