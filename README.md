@@ -102,6 +102,13 @@ uv run .agentic-layer/adw_init_plan_implement_test_lint.py --draft path/to/your/
 uv run .agentic-layer/adw_init_plan_implement_test_lint.py --draft path/to/your/draft.md --issue_id ISSUE-123
 ```
 
+### Select Agent
+
+```bash
+uv run .agentic-layer/adw_init_plan_implement_test_lint.py --draft path/to/your/draft.md --agent copilot
+uv run .agentic-layer/adw_init_plan_implement_test_lint.py --draft path/to/your/draft.md --agent claude
+```
+
 ### Individual Phase Scripts
 
 You can also run individual phases separately:
