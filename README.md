@@ -148,13 +148,15 @@ flowchart TD
 
 ## Setup
 
-1. Copy the example environment file:
+1. Copy the content of this repository to the location of your project. The agentic layer lives next to the project it helps to build, typically at the root of your project.
+
+2. Copy the example environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Configure your environment variables in `.env`:
+3. Configure your environment variables in `.env`:
 
 ```
 RUN_DIRECTORY=./.agentic-runs
@@ -162,7 +164,7 @@ RUN_DIRECTORY=./.agentic-runs
 
 **Note**: Authentication is handled automatically through the Claude Code Agent. Ensure you have Claude Code Agent installed and authenticated before running ADW.
 
-3. **(Optional but Important)** Configure `.claude/commands/` to match your project's needs:
+4. **(Optional but Important)** Configure `.claude/commands/` to match your project's needs:
 
 The agentic layer uses Claude Code slash commands defined in `.claude/commands/`. To get the best results, customize these commands to specify:
 - Your testing framework (e.g., pytest, jest, vitest)
@@ -171,7 +173,7 @@ The agentic layer uses Claude Code slash commands defined in `.claude/commands/`
 
 This tailors the AI agents to work optimally with your specific tech stack and project structure.
 
-4. Ensure you have Python 3.13+ and required dependencies (managed via inline script metadata)
+5. Ensure you have Python 3.13+ and required dependencies (managed via inline script metadata)
 
 ## Usage
 
