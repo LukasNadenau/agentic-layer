@@ -53,7 +53,7 @@ def speak_notification(message: str):
         engine.setProperty('rate', 150)
         engine.say(message)
         engine.runAndWait()
-    except Exception as e:
+    except (RuntimeError, OSError, ImportError) as e:
         # Don't let TTS errors break the workflow
         logging.getLogger(__name__).warning("Failed to speak notification: %s", e)
 
