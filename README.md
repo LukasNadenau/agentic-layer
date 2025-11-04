@@ -6,7 +6,7 @@ An AI-powered complete development workflow automation system that takes you fro
 
 ## Workflow Phases
 
-When you run `adw_init_plan_implement_test_lint.py`, the system executes six phases:
+When you run `adw_init_plan_implement_test_review_lint.py`, the system executes six phases:
 
 The following diagram illustrates the complete workflow:
 
@@ -175,41 +175,69 @@ This tailors the AI agents to work optimally with your specific tech stack and p
 
 ## Usage
 
-### Complete Workflow (Recommended)
-
-Execute the entire workflow from draft to tested implementation:
+Execute the complete Agentic Development Workflow from draft to tested, reviewed, and linted implementation using the main orchestration script:
 
 ```bash
-uv run .agentic-layer/adw_init_plan_implement_test_lint.py --draft path/to/your/draft.md
+uv run .agentic-layer/adw_init_plan_implement_test_review_lint.py --draft path/to/your/draft.md
 ```
 
-### With Custom Run ID
+### Command Parameters
+
+#### `--draft` (Required)
+Path to your draft markdown file describing the feature or bug fix you want to implement.
+
+**Example:**
+```bash
+uv run .agentic-layer/adw_init_plan_implement_test_review_lint.py --draft ./drafts/my-feature.md
+```
+
+#### `--run_id` (Optional)
+Specify a custom run identifier for this workflow execution. If not provided, a unique ID will be automatically generated based on timestamp.
+
+**Example:**
+```bash
+uv run .agentic-layer/adw_init_plan_implement_test_review_lint.py --draft ./drafts/my-feature.md --run_id my_custom_id
+```
+
+**Use case:** Useful when you want to reference a specific workflow run or maintain consistent naming across related executions.
+
+#### `--issue_id` (Optional)
+Associate the workflow with a specific issue tracking ID (e.g., from Jira, GitHub Issues, etc.). This ID will be incorporated into the generated branch name.
+
+**Example:**
+```bash
+uv run .agentic-layer/adw_init_plan_implement_test_review_lint.py --draft ./drafts/my-feature.md --issue_id JIRA-123
+```
+
+**Use case:** Links your implementation branch to your issue tracking system for better traceability.
+
+#### `--agent` (Optional)
+Select which AI coding agent to use for executing the workflow phases. Available options: `claude` or `copilot`.
+
+**Default:** `claude`
+
+**Examples:**
+```bash
+# Use Claude Code (default)
+uv run .agentic-layer/adw_init_plan_implement_test_review_lint.py --draft ./drafts/my-feature.md --agent claude
+
+# Use GitHub Copilot CLI
+uv run .agentic-layer/adw_init_plan_implement_test_review_lint.py --draft ./drafts/my-feature.md --agent copilot
+```
+
+**Use case:** Choose the agent that best fits your authentication setup and personal preferences.
+
+### Complete Example
+
+Combining all parameters:
 
 ```bash
-uv run .agentic-layer/adw_init_plan_implement_test_lint.py --draft path/to/your/draft.md --run_id my_custom_id
+uv run .agentic-layer/adw_init_plan_implement_test_review_lint.py \
+  --draft ./drafts/user-authentication.md \
+  --run_id auth_2024_q1 \
+  --issue_id AUTH-456 \
+  --agent claude
 ```
-
-### With Issue ID
-
-```bash
-uv run .agentic-layer/adw_init_plan_implement_test_lint.py --draft path/to/your/draft.md --issue_id ISSUE-123
-```
-
-### Select Agent
-
-```bash
-uv run .agentic-layer/adw_init_plan_implement_test_lint.py --draft path/to/your/draft.md --agent copilot
-uv run .agentic-layer/adw_init_plan_implement_test_lint.py --draft path/to/your/draft.md --agent claude
-```
-
-### Individual Phase Scripts
-
-You can also run individual phases separately:
-
-- **Initialization only**: `uv run .agentic-layer/adw_init.py --draft path/to/draft.md`
-- **Planning only**: `uv run .agentic-layer/adw_plan.py --run_id <run_id> --draft path/to/draft.md`
-- **Implementation only**: `uv run .agentic-layer/adw_implement.py --run_id <run_id> --spec path/to/spec.md`
-- **Testing only**: `uv run .agentic-layer/adw_test_loop.py --test_folder path/to/tests --spec path/to/spec.md`
 
 ## Testing
 
