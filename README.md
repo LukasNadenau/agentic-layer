@@ -33,16 +33,22 @@ flowchart TD
         CreateFolder --> CopyDraft[Copy draft → draft_runid.md]
         CopyDraft --> ReadDraft[Read draft content]
         ReadDraft --> Classify{{AI Agent: Classify draft}}
-        Classify --> ClassResult{FEATURE or BUG?}
+        Classify --> ClassResult[(FEATURE or BUG)]
+        ReadDraft --> NameSuffix{{AI Agent: Name branch suffix}}
+        NameSuffix --> BranchSuffix[(branch name suffix)]
         ClassResult --> GenBranch[Generate branch name]
+        BranchSuffix --> GenBranch
         GenBranch --> CreateBranch[Create git branch]
     end
     
-    CreateBranch --> Phase2Plan
-    
+    CreateBranch --> SpecDecision
+
     subgraph Phase2[Phase 2: Planning]
-        Phase2Plan{{AI Agent: Generate specification}}
-        Phase2Plan --> SpecFile[(spec_runid.md)]
+        SpecDecision{FEATURE or BUG?}
+        SpecDecision -->|FEATURE| FeatureSpec{{AI Agent: Generate feature specification}}
+        SpecDecision -->|BUG| BugSpec{{AI Agent: Generate bug specification}}
+        FeatureSpec --> SpecFile[(spec_runid.md)]
+        BugSpec --> SpecFile
     end
     
     SpecFile --> Phase3Impl
@@ -82,7 +88,7 @@ flowchart TD
     Phase6Lint --> Phase6Start
     
     subgraph Phase6[Phase 6: Linting]
-        Phase6Start[Run linters]
+        Phase6Start{{AI Agent: Run linters}}
         Phase6Start --> LintDecision{Linting passes?}
         LintDecision -->|Yes| Complete
         LintDecision -->|No| FixLint{{AI Agent: Fix linting issues}}
@@ -102,11 +108,14 @@ flowchart TD
     style Phase5 fill:#fce4ec
     style Phase6 fill:#f1f8e9
     style Classify fill:#bbdefb
-    style Phase2Plan fill:#ce93d8
+    style NameSuffix fill:#bbdefb
+    style FeatureSpec fill:#ce93d8
+    style BugSpec fill:#ce93d8
     style Phase3Impl fill:#ffcc80
     style FixTests fill:#a5d6a7
     style Phase5Start fill:#f48fb1
     style FixBlockers fill:#f48fb1
+    style Phase6Start fill:#dce775
     style FixLint fill:#dce775
     style Complete fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
     style WorkflowFailed fill:#ffcdd2,stroke:#f44336,stroke-width:3px
