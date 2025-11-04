@@ -61,7 +61,7 @@ flowchart TD
     CodeChanges --> Phase4Test
     
     subgraph Phase4[Phase 4: Testing Loop]
-        Phase4Test[Run test suite]
+        Phase4Test{{AI Agent: Run test suite}}
         Phase4Test --> TestResults[(test results XML)]
         TestResults --> TestDecision{All tests pass?}
         TestDecision -->|Yes| Phase5Rev
@@ -112,6 +112,7 @@ flowchart TD
     style FeatureSpec fill:#ce93d8
     style BugSpec fill:#ce93d8
     style Phase3Impl fill:#ffcc80
+    style Phase4Test fill:#a5d6a7
     style FixTests fill:#a5d6a7
     style Phase5Start fill:#f48fb1
     style FixBlockers fill:#f48fb1
