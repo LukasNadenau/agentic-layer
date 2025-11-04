@@ -12,6 +12,9 @@ import logging
 import random
 import pyttsx3
 
+# Suppress verbose INFO logs from comtypes (Windows COM wrapper)
+logging.getLogger('comtypes').setLevel(logging.WARNING)
+
 
 # Success messages - randomly selected when workflow completes successfully
 SUCCESS_MESSAGES = [
