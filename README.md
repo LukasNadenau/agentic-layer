@@ -4,7 +4,7 @@ An AI-powered complete development workflow automation system that takes you fro
 
 ## Overview
 
-ADW orchestrates an end-to-end development workflow using AI agents (via Pydantic AI). From a single draft file, it automatically classifies your idea, creates a git branch, generates a detailed specification, implements the code, and runs tests until they pass—all in one command.
+ADW orchestrates an end-to-end development workflow using AI agents. From a single draft file, it automatically classifies your idea, creates a git branch, generates a detailed specification, implements the code, and runs tests until they pass—all in one command.
 
 ## Features
 
