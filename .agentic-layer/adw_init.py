@@ -28,6 +28,7 @@ from generate_branch_name import generate_branch_name
 from create_branch import create_branch
 from agent_types import AgentType
 from arg_utils import add_agent_argument, parse_agent_type
+from logging_config import setup_logging
 
 
 def _print_initialization_summary(
@@ -154,6 +155,14 @@ async def adw_init(
     else:
         console.print(f"[cyan]Step 1:[/cyan] Using provided run ID: [bold]{run_id}[/bold]")
         logger.info("Using provided run ID: %s", run_id)
+
+    # Initialize logging with run-specific log file
+    setup_logging(run_id)
+    logger = logging.getLogger(__name__)
+    logger.info("="*60)
+    logger.info("ADW Initialization started - Run ID: %s", run_id)
+    logger.info("Draft: %s | Agent: %s", draft_file_path, agent_type.value)
+    logger.info("="*60)
 
     # Steps 2-4: Set up folder and read draft
     draft_destination_path, draft_text = _setup_run_folder_and_draft(run_id, draft_file_path)
