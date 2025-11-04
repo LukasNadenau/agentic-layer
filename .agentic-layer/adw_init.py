@@ -76,7 +76,7 @@ def _setup_run_folder_and_draft(run_id: str, draft_file_path: str) -> Tuple[str,
 
 
 async def _classify_and_create_branch(
-    run_id: str, draft_text: str, issue_id: str = None, agent_type: AgentType = AgentType.CLAUDE
+    run_id: str, draft_file_path: str, issue_id: str = None, agent_type: AgentType = AgentType.CLAUDE
 ) -> Tuple[DraftClass, str]:
     """Classify draft and create git branch, return classification and branch name."""
     logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ async def _classify_and_create_branch(
     try:
         status_text = f"[cyan]Classifying with {agent_type.value.capitalize()}...[/cyan]"
         with console.status(status_text):
-            draft_class = await classify_draft(draft_text, agent_type)
+            draft_class = await classify_draft(run_id, draft_file_path, agent_type)
         console.print(f"  Draft classified as: [bold]{draft_class}[/bold]")
         logger.info("Draft classified as: %s", draft_class)
     except Exception as e:
@@ -100,7 +100,7 @@ async def _classify_and_create_branch(
     try:
         status_text = f"[cyan]Generating with {agent_type.value.capitalize()}...[/cyan]"
         with console.status(status_text):
-            branch_name = await generate_branch_name(run_id, draft_class, draft_text, issue_id, agent_type)
+            branch_name = await generate_branch_name(run_id, draft_class, draft_file_path, issue_id, agent_type)
         console.print(f"  Generated branch name: [bold]{branch_name}[/bold]")
         logger.info("Generated branch name: %s", branch_name)
     except Exception as e:
@@ -169,7 +169,7 @@ async def adw_init(
 
     # Steps 5-7: Classify and create branch
     draft_class, branch_name = await _classify_and_create_branch(
-        run_id, draft_text, issue_id, agent_type
+        run_id, draft_destination_path, issue_id, agent_type
     )
 
     # Print summary

@@ -8,26 +8,26 @@
 
 import logging
 import re
-import tempfile
 from pathlib import Path
 from models import DraftClass
 from coding_agent import call_coding_agent
 from agent_types import AgentType
+from get_or_create_folders import get_or_create_run_folder
 
 
 async def generate_branch_name(
     run_id: str,
     draft_class: DraftClass,
-    draft: str,
+    draft_file_path: str,
     issue_id: str | None = None,
     agent_type: AgentType = AgentType.CLAUDE
 ) -> str:
-    """Generate a branch name from draft text.
+    """Generate a branch name from draft file.
 
     Args:
         run_id: The run identifier
         draft_class: Classification as FEATURE or BUG
-        draft: The draft text describing the change
+        draft_file_path: Path to the draft file
         issue_id: Optional issue identifier
         agent_type: The agent type to use (default: CLAUDE)
 
@@ -41,31 +41,29 @@ async def generate_branch_name(
     """
     logger = logging.getLogger(__name__)
     logger.debug("Generating branch name with %s agent", agent_type.value)
+    logger.debug("Using draft file: %s", draft_file_path)
 
-    # Create temporary files for input and output
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as draft_file:
-        draft_file.write(draft)
-        draft_file_path = draft_file.name
+    # Get run folder
+    run_folder = get_or_create_run_folder(run_id)
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as output_file:
-        output_file_path = output_file.name
+    # Create output file path in the run folder
+    output_file_path = run_folder / "branch_name_output.txt"
 
     try:
-        # Call the coding agent to generate short description
+        # Call the coding agent to generate short description using existing draft file
         await call_coding_agent(
             agent_type,
             "branch_name",
-            [draft_file_path, output_file_path]
+            [draft_file_path, str(output_file_path)]
         )
 
         # Read and validate the result
-        output_path = Path(output_file_path)
-        if not output_path.exists():
+        if not output_file_path.exists():
             error_msg = f"Agent did not create output file at: {output_file_path}"
             logger.error(error_msg)
             raise RuntimeError(error_msg)
 
-        short_desc = output_path.read_text(encoding='utf-8').strip()
+        short_desc = output_file_path.read_text(encoding='utf-8').strip()
         logger.debug("AI suggested: %s", short_desc)
 
         # Validate the format (should be snake_case, no special chars except underscore)
@@ -92,16 +90,10 @@ async def generate_branch_name(
 
         final_name = '_'.join(parts)
         logger.info("Generated branch name: %s", final_name)
+        logger.info("Branch name result saved to: %s", output_file_path)
 
         return final_name
 
     except Exception as e:
         logger.error("Branch name generation failed: %s", e, exc_info=True)
         raise
-    finally:
-        # Clean up temporary files
-        try:
-            Path(draft_file_path).unlink(missing_ok=True)
-            Path(output_file_path).unlink(missing_ok=True)
-        except Exception as cleanup_error:
-            logger.warning("Failed to clean up temporary files: %s", cleanup_error)

@@ -7,21 +7,23 @@
 # ///
 
 import logging
-import tempfile
 from pathlib import Path
 from models import DraftClass
 from coding_agent import call_coding_agent
 from agent_types import AgentType
+from get_or_create_folders import get_or_create_run_folder
 
 
 async def classify_draft(
-    draft_text: str,
+    run_id: str,
+    draft_file_path: str,
     agent_type: AgentType = AgentType.CLAUDE
 ) -> DraftClass:
-    """Classify a draft text as either FEATURE or BUG.
+    """Classify a draft file as either FEATURE or BUG.
 
     Args:
-        draft_text: The draft text to classify
+        run_id: The run identifier
+        draft_file_path: Path to the draft file to classify
         agent_type: The agent type to use (default: CLAUDE)
 
     Returns:
@@ -33,38 +35,39 @@ async def classify_draft(
     """
     logger = logging.getLogger(__name__)
     logger.debug("Classifying draft with %s agent", agent_type.value)
+    logger.debug("Using draft file: %s", draft_file_path)
 
-    # Create temporary files for input and output
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as draft_file:
-        draft_file.write(draft_text)
-        draft_file_path = draft_file.name
+    # Get run folder
+    run_folder = get_or_create_run_folder(run_id)
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as output_file:
-        output_file_path = output_file.name
+    # Create output file path in the run folder
+    output_file_path = run_folder / "classify_output.txt"
 
     try:
-        # Call the coding agent
+        # Call the coding agent using the existing draft file
         await call_coding_agent(
             agent_type,
             "classify",
-            [draft_file_path, output_file_path]
+            [draft_file_path, str(output_file_path)]
         )
 
         # Read and validate the result
-        output_path = Path(output_file_path)
-        if not output_path.exists():
+        if not output_file_path.exists():
             error_msg = f"Agent did not create output file at: {output_file_path}"
             logger.error(error_msg)
             raise RuntimeError(error_msg)
 
-        result_text = output_path.read_text(encoding='utf-8').strip().upper()
+        result_text = output_file_path.read_text(encoding='utf-8').strip().upper()
+        logger.debug("Classification output: %s", result_text)
 
         # Validate the result
         if result_text == "FEATURE":
             logger.info("Draft classified as: FEATURE")
+            logger.info("Classification result saved to: %s", output_file_path)
             return DraftClass.FEATURE
         elif result_text == "BUG":
             logger.info("Draft classified as: BUG")
+            logger.info("Classification result saved to: %s", output_file_path)
             return DraftClass.BUG
         else:
             error_msg = f"Invalid classification result: '{result_text}'. Expected 'FEATURE' or 'BUG'."
@@ -74,10 +77,3 @@ async def classify_draft(
     except Exception as e:
         logger.error("Draft classification failed: %s", e, exc_info=True)
         raise
-    finally:
-        # Clean up temporary files
-        try:
-            Path(draft_file_path).unlink(missing_ok=True)
-            Path(output_file_path).unlink(missing_ok=True)
-        except Exception as cleanup_error:
-            logger.warning("Failed to clean up temporary files: %s", cleanup_error)
