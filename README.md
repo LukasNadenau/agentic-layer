@@ -74,8 +74,9 @@ cp .env.example .env
 
 ```
 RUN_DIRECTORY=./.agentic-runs
-ANTHROPIC_API_KEY=your-api-key
 ```
+
+**Note**: Authentication is handled automatically through the Claude Code Agent. Ensure you have Claude Code Agent installed and authenticated before running ADW.
 
 3. Ensure you have Python 3.13+ and required dependencies (managed via inline script metadata)
 
