@@ -19,6 +19,8 @@ SUCCESS_MESSAGES = [
     "These aren't the bugs you're looking for. All checks passed. Ready.",
     "I have a good feeling about this! Workflow successful. Awaiting orders.",
     "The mission is complete, Master. What are your orders?",
+    "This is the way. All tests have passed.",
+    "Never tell me the odds! And we succeeded anyway.",
 ]
 
 # Error messages - randomly selected when workflow encounters an error
@@ -29,6 +31,10 @@ ERROR_MESSAGES = [
     "Help me, developer, you're my only hope! An error occurred.",
     "I find your lack of passing tests disturbing. Error detected.",
     "These ARE the bugs you're looking for. Workflow failed.",
+    "Failed, we have. Into exile, the code must go.",
+    "The code is strong with the dark side. Error detected.",
+    "Only at the end do you realize the power of the bugs. Failure.",
+    "This is not the deployment you're looking for. Build failed.",
 ]
 
 
