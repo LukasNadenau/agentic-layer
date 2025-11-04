@@ -9,6 +9,7 @@ including the review phase.
 #   "python-dotenv",
 #   "junitparser",
 #   "rich",
+#   "pyttsx3",
 # ]
 # ///
 
@@ -28,6 +29,7 @@ from adw_review import adw_review
 from get_or_create_folders import get_or_create_test_folder
 from agent_types import AgentType
 from arg_utils import add_agent_argument, parse_agent_type
+from speech_notifications import speak_success, speak_error
 from rich.panel import Panel
 
 
@@ -203,8 +205,15 @@ async def adw_complete(
         logger.info("COMPLETE WORKFLOW FINISHED SUCCESSFULLY")
         logger.info("Run ID: %s | Branch: %s | Spec: %s", run_id, branch_name, spec_file_path)
         logger.info("="*60)
+
+        # Play success notification
+        speak_success()
+
         return True
     except (FileNotFoundError, ValueError, RuntimeError):
+        # Play error notification
+        speak_error()
+
         return False
 
 
