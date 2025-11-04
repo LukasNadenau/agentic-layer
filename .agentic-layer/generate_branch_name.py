@@ -8,7 +8,6 @@
 
 import logging
 import re
-from pathlib import Path
 from models import DraftClass
 from coding_agent import call_coding_agent
 from agent_types import AgentType
