@@ -131,20 +131,23 @@ async def _execute_copilot_agent(prompt: str) -> None:
         # Read output line by line
         stdout_lines = []
         stderr_lines = []
-        
+
         for line in process.stdout:
             logger.debug("Copilot output: %s", line.rstrip())
             stdout_lines.append(line)
-        
-        # Read stderr
+
+        # Read stderr (contains both errors and summary stats)
         for line in process.stderr:
-            logger.debug("Copilot error: %s", line.rstrip())
             stderr_lines.append(line)
-        
+
         # Wait for process to complete
         process.wait()
 
         if process.returncode != 0:
+            # Process failed - log stderr as errors
+            for line in stderr_lines:
+                logger.error("Copilot error: %s", line.rstrip())
+
             stderr_output = ''.join(stderr_lines).strip()
             error_msg = (
                 f"GitHub Copilot CLI failed with exit code "
@@ -154,6 +157,12 @@ async def _execute_copilot_agent(prompt: str) -> None:
                 error_msg += f"\nStderr: {stderr_output}"
             logger.error(error_msg)
             raise RuntimeError(error_msg)
+        else:
+            # Process succeeded - stderr contains summary stats, log as info
+            for line in stderr_lines:
+                stripped = line.rstrip()
+                if stripped:  # Only log non-empty lines
+                    logger.info("Copilot summary: %s", stripped)
 
         logger.info("GitHub Copilot CLI execution completed")
 
