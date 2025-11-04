@@ -1,8 +1,8 @@
-# Agentic Development Workflow (ADW)
+![Agentic Layer](.docs/github-header-banner.png)
 
-An AI-powered complete development workflow automation system that takes you from idea to tested implementation. Transform a draft document into fully implemented, tested, reviewed, and linted code through an automated six-phase process: initialization, planning, implementation, testing, review, and linting.
+# Agentic Layer 
 
-![Agentic Development Workflow Demo](.docs/adw.gif)
+An agentic development workflow (ADW) automation system that takes you from idea to tested implementation. Transform a draft document into fully implemented, tested, reviewed, and linted code through an automated six-phase process: initialization, planning, implementation, testing, review, and linting.
 
 ## Workflow Phases
 
