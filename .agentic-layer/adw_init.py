@@ -4,7 +4,7 @@ This script orchestrates the initialization of a new development workflow run.
 """
 # /// script
 # dependencies = [
-#   "pydantic-ai",
+#   "claude-agent-sdk",
 #   "python-dotenv",
 #   "rich",
 # ]
@@ -22,9 +22,12 @@ from generate_run_id import generate_run_id
 from get_or_create_folders import get_or_create_run_folder
 from copy_draft_to_run_folder import copy_draft_to_run_folder
 from read_draft_text import read_draft_text
-from classify_draft import classify_draft, DraftClass
+from classify_draft import classify_draft
+from models import DraftClass
 from generate_branch_name import generate_branch_name
 from create_branch import create_branch
+from agent_types import AgentType
+from arg_utils import add_agent_argument, parse_agent_type
 
 
 def _print_initialization_summary(
@@ -72,17 +75,18 @@ def _setup_run_folder_and_draft(run_id: str, draft_file_path: str) -> Tuple[str,
 
 
 async def _classify_and_create_branch(
-    run_id: str, draft_text: str, issue_id: str = None
+    run_id: str, draft_text: str, issue_id: str = None, agent_type: AgentType = AgentType.CLAUDE
 ) -> Tuple[DraftClass, str]:
     """Classify draft and create git branch, return classification and branch name."""
     logger = logging.getLogger(__name__)
 
     # Classify the draft
     console.print("[cyan]Step 5:[/cyan] Classifying draft...")
-    logger.debug("Starting draft classification with Pydantic AI")
+    logger.debug("Starting draft classification with %s agent", agent_type.value)
     try:
-        with console.status("[cyan]Classifying with AI...[/cyan]"):
-            draft_class = await classify_draft(draft_text)
+        status_text = f"[cyan]Classifying with {agent_type.value.capitalize()}...[/cyan]"
+        with console.status(status_text):
+            draft_class = await classify_draft(draft_text, agent_type)
         console.print(f"  Draft classified as: [bold]{draft_class}[/bold]")
         logger.info("Draft classified as: %s", draft_class)
     except Exception as e:
@@ -93,8 +97,9 @@ async def _classify_and_create_branch(
     console.print("[cyan]Step 6:[/cyan] Generating branch name...")
     logger.debug("Generating branch name for %s with issue_id: %s", draft_class, issue_id)
     try:
-        with console.status("[cyan]Generating with AI...[/cyan]"):
-            branch_name = await generate_branch_name(run_id, draft_class, draft_text, issue_id)
+        status_text = f"[cyan]Generating with {agent_type.value.capitalize()}...[/cyan]"
+        with console.status(status_text):
+            branch_name = await generate_branch_name(run_id, draft_class, draft_text, issue_id, agent_type)
         console.print(f"  Generated branch name: [bold]{branch_name}[/bold]")
         logger.info("Generated branch name: %s", branch_name)
     except Exception as e:
@@ -116,7 +121,10 @@ async def _classify_and_create_branch(
 
 
 async def adw_init(
-    draft_file_path: str, run_id: str = None, issue_id: str = None
+    draft_file_path: str,
+    run_id: str = None,
+    issue_id: str = None,
+    agent_type: AgentType = AgentType.CLAUDE
 ) -> Tuple[str, str, str, DraftClass]:
     """Initialize the Agentic Development Workflow.
 
@@ -124,6 +132,7 @@ async def adw_init(
         draft_file_path: Path to the draft file to process
         run_id: Optional run ID (generated if not provided)
         issue_id: Optional issue ID for branch naming
+        agent_type: The agent type to use (default: CLAUDE)
 
     Returns:
         Tuple of (run_id, draft_destination_path, branch_name, draft_class)
@@ -150,7 +159,9 @@ async def adw_init(
     draft_destination_path, draft_text = _setup_run_folder_and_draft(run_id, draft_file_path)
 
     # Steps 5-7: Classify and create branch
-    draft_class, branch_name = await _classify_and_create_branch(run_id, draft_text, issue_id)
+    draft_class, branch_name = await _classify_and_create_branch(
+        run_id, draft_text, issue_id, agent_type
+    )
 
     # Print summary
     _print_initialization_summary(run_id, draft_destination_path, draft_class, branch_name)
@@ -165,11 +176,13 @@ async def main():
     parser.add_argument("--draft", required=True, help="Path to the draft file to process")
     parser.add_argument("--run_id", help="Optional run ID (generated if not provided)")
     parser.add_argument("--issue_id", help="Optional issue ID for branch naming")
+    add_agent_argument(parser)
 
     args = parser.parse_args()
 
     try:
-        await adw_init(args.draft, args.run_id, args.issue_id)
+        agent_type = parse_agent_type(args)
+        await adw_init(args.draft, args.run_id, args.issue_id, agent_type)
     except FileNotFoundError as e:
         print(f"File error: {e}", file=sys.stderr)
         sys.exit(1)

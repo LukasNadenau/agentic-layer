@@ -7,7 +7,6 @@ including the review phase.
 # dependencies = [
 #   "claude-agent-sdk",
 #   "python-dotenv",
-#   "pydantic-ai",
 #   "junitparser",
 #   "rich",
 # ]
@@ -165,7 +164,7 @@ async def adw_complete(
 
     try:
         run_id, draft_destination_path, branch_name, draft_class = await adw_init(
-            draft_file_path, run_id, issue_id
+            draft_file_path, run_id, issue_id, agent_type
         )
     except (FileNotFoundError, ValueError, RuntimeError) as e:
         error(f"Initialization failed: {e}")
