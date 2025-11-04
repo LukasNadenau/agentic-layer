@@ -173,7 +173,16 @@ RUN_DIRECTORY=./.agentic-runs
 
 **Note**: Authentication is handled automatically through the Claude Code Agent. Ensure you have Claude Code Agent installed and authenticated before running ADW.
 
-3. Ensure you have Python 3.13+ and required dependencies (managed via inline script metadata)
+3. **(Optional but Important)** Configure `.claude/commands/` to match your project's needs:
+
+The agentic layer uses Claude Code slash commands defined in `.claude/commands/`. To get the best results, customize these commands to specify:
+- Your testing framework (e.g., pytest, jest, vitest)
+- Your linting tools (e.g., ruff, eslint, prettier)
+- Other technologies and conventions specific to your project
+
+This tailors the AI agents to work optimally with your specific tech stack and project structure.
+
+4. Ensure you have Python 3.13+ and required dependencies (managed via inline script metadata)
 
 ## Usage
 
