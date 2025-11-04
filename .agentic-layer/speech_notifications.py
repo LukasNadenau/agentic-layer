@@ -15,26 +15,20 @@ import pyttsx3
 
 # Success messages - randomly selected when workflow completes successfully
 SUCCESS_MESSAGES = [
-    "Mission accomplished! I am ready for your next command.",
-    "Workflow completed successfully. All systems nominal. Standing by.",
-    "Victory! The code gods smile upon us. I am ready.",
-    "All phases complete. Your code is pristine. Ready for action.",
-    "Success across the board! Everything passed. Ready when you are.",
-    "Flawless execution! All checks passed. Awaiting your next move.",
-    "Boom! Nailed it! Workflow complete. What's next, boss?",
-    "Green lights everywhere! Workflow successful. I am ready to serve.",
+    "The Force is strong with this code. Mission complete, I am ready.",
+    "These aren't the bugs you're looking for. All checks passed. Ready.",
+    "I have a good feeling about this! Workflow successful. Awaiting orders.",
+    "The mission is complete, Master. What are your orders?",
 ]
 
 # Error messages - randomly selected when workflow encounters an error
 ERROR_MESSAGES = [
-    "Houston, we have a problem. An error has occurred.",
-    "Abort! Abort! Something went wrong. Please check the logs.",
-    "Error detected. Workflow failed. I need your attention.",
-    "Red alert! The workflow encountered an error.",
-    "Oops! Hit a snag. An error stopped the workflow.",
-    "Failure is not an option, but it happened anyway. Error occurred.",
-    "Code gremlins detected! An error has halted progress.",
-    "Plot twist! An unexpected error appeared. Check the output.",
+    "I've got a bad feeling about this. An error occurred.",
+    "It's a trap! The workflow has failed.",
+    "The dark side clouds everything. An error has stopped progress.",
+    "Help me, developer, you're my only hope! An error occurred.",
+    "I find your lack of passing tests disturbing. Error detected.",
+    "These ARE the bugs you're looking for. Workflow failed.",
 ]
 
 
