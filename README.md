@@ -21,6 +21,97 @@ ADW orchestrates an end-to-end development workflow using AI agents. From a sing
 
 When you run `adw_init_plan_implement_test_lint.py`, the system executes six phases:
 
+The following diagram illustrates the complete workflow:
+
+```mermaid
+flowchart TD
+    Start([User provides draft.md]) --> Phase1Init
+    
+    subgraph Phase1[Phase 1: Initialization]
+        Phase1Init[Generate run_id]
+        Phase1Init --> CreateFolder[Create .agentic-runs/run_id/ folder]
+        CreateFolder --> CopyDraft[Copy draft → draft_runid.md]
+        CopyDraft --> ReadDraft[Read draft content]
+        ReadDraft --> Classify{{AI Agent: Classify draft}}
+        Classify --> ClassResult{FEATURE or BUG?}
+        ClassResult --> GenBranch[Generate branch name]
+        GenBranch --> CreateBranch[Create git branch]
+    end
+    
+    CreateBranch --> Phase2Plan
+    
+    subgraph Phase2[Phase 2: Planning]
+        Phase2Plan{{AI Agent: Generate specification}}
+        Phase2Plan --> SpecFile[(spec_runid.md)]
+    end
+    
+    SpecFile --> Phase3Impl
+    
+    subgraph Phase3[Phase 3: Implementation]
+        Phase3Impl{{AI Agent: Implement code}}
+        Phase3Impl --> CodeChanges[Code changes applied]
+    end
+    
+    CodeChanges --> Phase4Test
+    
+    subgraph Phase4[Phase 4: Testing Loop]
+        Phase4Test[Run test suite]
+        Phase4Test --> TestResults[(test results XML)]
+        TestResults --> TestDecision{All tests pass?}
+        TestDecision -->|Yes| Phase5Rev
+        TestDecision -->|No| AnalyzeFailures[Analyze test failures]
+        AnalyzeFailures --> FixTests{{AI Agent: Fix failing tests}}
+        FixTests --> CheckIterations4{Max iterations<br/>reached?}
+        CheckIterations4 -->|No| Phase4Test
+        CheckIterations4 -->|Yes| TestFail[Testing failed]
+    end
+    
+    Phase5Rev --> Phase5Start
+    
+    subgraph Phase5[Phase 5: Review Loop]
+        Phase5Start{{AI Agent: Review implementation}}
+        Phase5Start --> ReviewResults[(review.json)]
+        ReviewResults --> ReviewDecision{Blocker issues?}
+        ReviewDecision -->|No| Phase6Lint
+        ReviewDecision -->|Yes| FixBlockers{{AI Agent: Fix blockers}}
+        FixBlockers --> CheckIterations5{Max iterations<br/>reached?}
+        CheckIterations5 -->|No| Phase5Start
+        CheckIterations5 -->|Yes| ReviewFail[Review failed]
+    end
+    
+    Phase6Lint --> Phase6Start
+    
+    subgraph Phase6[Phase 6: Linting]
+        Phase6Start[Run linters]
+        Phase6Start --> LintDecision{Linting passes?}
+        LintDecision -->|Yes| Complete
+        LintDecision -->|No| FixLint{{AI Agent: Fix linting issues}}
+        FixLint --> VerifyLint[Verify fixes]
+        VerifyLint --> Phase6Start
+    end
+    
+    Complete([Workflow Complete:<br/>Tested & Linted Code])
+    
+    TestFail -.->|Exit| WorkflowFailed([Workflow Failed])
+    ReviewFail -.->|Exit| WorkflowFailed
+    
+    style Phase1 fill:#e3f2fd
+    style Phase2 fill:#f3e5f5
+    style Phase3 fill:#fff3e0
+    style Phase4 fill:#e8f5e9
+    style Phase5 fill:#fce4ec
+    style Phase6 fill:#f1f8e9
+    style Classify fill:#bbdefb
+    style Phase2Plan fill:#ce93d8
+    style Phase3Impl fill:#ffcc80
+    style FixTests fill:#a5d6a7
+    style Phase5Start fill:#f48fb1
+    style FixBlockers fill:#f48fb1
+    style FixLint fill:#dce775
+    style Complete fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
+    style WorkflowFailed fill:#ffcdd2,stroke:#f44336,stroke-width:3px
+```
+
 ### Phase 1: Initialization
 
 1. **Generate Run ID**: Creates a unique identifier for the workflow run
