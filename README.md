@@ -6,17 +6,6 @@ An AI-powered complete development workflow automation system that takes you fro
 
 ADW orchestrates an end-to-end development workflow using AI agents. From a single draft file, it automatically classifies your idea, creates a git branch, generates a detailed specification, implements the code, and runs tests until they pass—all in one command.
 
-## Features
-
-- **Complete Automation**: Single command executes the entire workflow from draft to tested code
-- **AI-Powered Classification**: Automatically determines if your draft describes a feature or bug fix
-- **Smart Branch Naming**: Generates meaningful git branch names following conventions (e.g., `feat_run_abc123_add_user_auth`)
-- **Specification Generation**: Creates detailed technical specs from your draft ideas
-- **Automated Implementation**: AI agents implement code based on the generated specification
-- **Test Loop**: Runs tests, reviews, and linting repeatedly, analyzing failures and fixing issues until all tests pass
-- **Organized Run Management**: Creates structured folders for each development run in `.agentic-runs/`
-- **Git Integration**: Automatically creates and checks out branches for your work
-
 ## Workflow Phases
 
 When you run `adw_init_plan_implement_test_lint.py`, the system executes six phases:
@@ -224,40 +213,10 @@ You can also run individual phases separately:
 
 ## Testing
 
-The project uses pytest for unit testing. Tests are located in the `tests/` directory.
+The project uses pytest for unit testing. Run all tests with:
 
-### Running Tests
-
-Run all tests:
 ```bash
 uv run pytest
 ```
 
-Run tests with verbose output:
-```bash
-uv run pytest -v
-```
-
-Run specific test file:
-```bash
-uv run pytest tests/test_generate_run_id.py
-```
-
-Run specific test:
-```bash
-uv run pytest tests/test_generate_run_id.py::test_generate_run_id_length
-```
-
-### Test Structure
-
-- `tests/` - Root directory for all test files
-- `tests/test_*.py` - Test files following pytest naming convention
-- Test functions must start with `test_`
-
-### Writing New Tests
-
-1. Create a new file in `tests/` starting with `test_`
-2. Import the module to test from `.agentic-layer/`
-3. Write test functions starting with `test_`
-4. Use clear arrange-act-assert structure
-5. Run pytest to verify tests pass
+Tests are located in the `tests/` directory following pytest naming conventions (`test_*.py`).
