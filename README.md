@@ -2,9 +2,7 @@
 
 An AI-powered complete development workflow automation system that takes you from idea to tested implementation. Transform a draft document into fully implemented, tested, reviewed, and linted code through an automated six-phase process: initialization, planning, implementation, testing, review, and linting.
 
-## Overview
-
-ADW orchestrates an end-to-end development workflow using AI agents. From a single draft file, it automatically classifies your idea, creates a git branch, generates a detailed specification, implements the code, and runs tests until they pass—all in one command.
+![Agentic Development Workflow Demo](.docs/adw.gif)
 
 ## Workflow Phases
 
