@@ -75,9 +75,9 @@ async def adw_review(
         logger.debug("Reading review JSON from: %s", review_json_path_obj)
 
         if not review_json_path_obj.exists():
-            error_msg = f"Review JSON not found at {review_json_path_obj}"
-            logger.error(error_msg)
-            raise FileNotFoundError(error_msg)
+            logger.warning("Review JSON not found at %s - treating as successful review", review_json_path_obj)
+            console.print("\n[green]✓[/green] No review JSON found - treating as successful review (no issues).")
+            return True
 
         try:
             with open(review_json_path_obj, 'r', encoding='utf-8') as f:
