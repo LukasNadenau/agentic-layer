@@ -160,7 +160,7 @@ cp .env.example .env
 RUN_DIRECTORY=./.agentic-runs
 ```
 
-**Note**: Authentication is handled automatically through the Claude Code Agent. Ensure you have Claude Code Agent installed and authenticated before running ADW.
+**Note**: Authentication is handled automatically through the coding agent (Claude Code or Github Copilot CLI). Ensure you have Claude Code or Github Copilot CLI installed and authenticated before running ADW.
 
 4. **(Optional but Important)** Configure `.claude/commands/` to match your project's needs:
 
