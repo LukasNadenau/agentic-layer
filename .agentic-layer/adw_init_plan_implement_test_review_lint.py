@@ -89,7 +89,7 @@ async def _run_review_phase(run_id: str, spec_file_path: str, agent_type: AgentT
             raise RuntimeError("Review failed: blocker issues remain after max iterations")
         success("Review completed - no blocker issues")
         logger.info("Review completed successfully - no blocker issues")
-    except (FileNotFoundError, ValueError, RuntimeError) as e:
+    except (ValueError, RuntimeError) as e:
         error(f"Review failed: {e}")
         logger.error("Review failed: %s", e, exc_info=True)
         raise
