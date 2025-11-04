@@ -86,40 +86,34 @@ flowchart TD
     end
     
     Phase6Lint --> Phase6Start
-    
+
     subgraph Phase6[Phase 6: Linting]
-        Phase6Start{{AI Agent: Run linters}}
-        Phase6Start --> LintDecision{Linting passes?}
-        LintDecision -->|Yes| Complete
-        LintDecision -->|No| FixLint{{AI Agent: Fix linting issues}}
-        FixLint --> VerifyLint[Verify fixes]
-        VerifyLint --> Phase6Start
+        Phase6Start{{AI Agent: Run linters and fix issues}}
     end
-    
-    Complete([Workflow Complete:<br/>Tested & Linted Code])
+
+    Phase6Start --> Complete([Workflow Complete:<br/>Tested & Linted Code])
     
     TestFail -.->|Exit| WorkflowFailed([Workflow Failed])
     ReviewFail -.->|Exit| WorkflowFailed
     
-    style Phase1 fill:#e3f2fd
-    style Phase2 fill:#f3e5f5
-    style Phase3 fill:#fff3e0
-    style Phase4 fill:#e8f5e9
-    style Phase5 fill:#fce4ec
-    style Phase6 fill:#f1f8e9
-    style Classify fill:#bbdefb
-    style NameSuffix fill:#bbdefb
-    style FeatureSpec fill:#ce93d8
-    style BugSpec fill:#ce93d8
-    style Phase3Impl fill:#ffcc80
-    style Phase4Test fill:#a5d6a7
-    style FixTests fill:#a5d6a7
-    style Phase5Start fill:#f48fb1
-    style FixBlockers fill:#f48fb1
-    style Phase6Start fill:#dce775
-    style FixLint fill:#dce775
-    style Complete fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
-    style WorkflowFailed fill:#ffcdd2,stroke:#f44336,stroke-width:3px
+    style Phase1 fill:#e3f2fd,color:#000
+    style Phase2 fill:#f3e5f5,color:#000
+    style Phase3 fill:#fff3e0,color:#000
+    style Phase4 fill:#e8f5e9,color:#000
+    style Phase5 fill:#fce4ec,color:#000
+    style Phase6 fill:#f1f8e9,color:#000
+    style Classify fill:#bbdefb,color:#000
+    style NameSuffix fill:#bbdefb,color:#000
+    style FeatureSpec fill:#ce93d8,color:#000
+    style BugSpec fill:#ce93d8,color:#000
+    style Phase3Impl fill:#ffcc80,color:#000
+    style Phase4Test fill:#a5d6a7,color:#000
+    style FixTests fill:#a5d6a7,color:#000
+    style Phase5Start fill:#f48fb1,color:#000
+    style FixBlockers fill:#f48fb1,color:#000
+    style Phase6Start fill:#dce775,color:#000
+    style Complete fill:#c8e6c9,stroke:#4caf50,stroke-width:3px,color:#000
+    style WorkflowFailed fill:#ffcdd2,stroke:#f44336,stroke-width:3px,color:#000
 ```
 
 ### Phase 1: Initialization
