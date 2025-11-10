@@ -148,21 +148,23 @@ flowchart TD
 
 1. Copy the content of this repository to the location of your project. The agentic layer lives next to the project it helps to build, typically at the root of your project.
 
-2. Copy the example environment file:
+2. **Install and authenticate a coding agent** - Choose one:
+   - **Claude Code** ([https://www.claude.com/product/claude-code](https://www.claude.com/product/claude-code))
+   - **GitHub Copilot CLI** ([https://github.com/github/copilot-cli](https://github.com/github/copilot-cli))
+
+3. Copy the example environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-3. Configure your environment variables in `.env`:
+4. Configure your environment variables in `.env`:
 
 ```
 RUN_DIRECTORY=./.agentic-runs
 ```
 
-**Note**: Authentication is handled automatically through the coding agent (Claude Code or Github Copilot CLI). Ensure you have Claude Code or Github Copilot CLI installed and authenticated before running ADW.
-
-4. **(Optional but Important)** Configure `.claude/commands/` to match your project's needs:
+5. **(Optional but Important)** Configure `.claude/commands/` to match your project's needs:
 
 The agentic layer uses Claude Code slash commands defined in `.claude/commands/`. To get the best results, customize these commands to specify:
 - Your testing framework (e.g., pytest, jest, vitest)
@@ -171,7 +173,7 @@ The agentic layer uses Claude Code slash commands defined in `.claude/commands/`
 
 This tailors the AI agents to work optimally with your specific tech stack and project structure.
 
-5. Ensure you have Python 3.13+ and required dependencies (managed via inline script metadata)
+6. Ensure you have Python 3.13+ and required dependencies (managed via inline script metadata)
 
 ## Usage
 
