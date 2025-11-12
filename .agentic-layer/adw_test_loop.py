@@ -25,32 +25,37 @@ from agent_types import AgentType
 from arg_utils import add_agent_argument, parse_agent_type
 
 
-async def _resolve_failing_test_suites(
+async def _resolve_failing_test_cases(
     failing_suites: list, spec_file_path: str, agent_type: AgentType
 ):
-    """Resolve all failing test suites."""
+    """Resolve all failing test cases from the failing test suites."""
     logger = logging.getLogger(__name__)
 
     for suite in failing_suites:
-        console.print(f"  Resolving test suite: [yellow]{suite.name}[/yellow]")
-        logger.info("Resolving test suite: %s", suite.name)
-        try:
-            suite_success = await resolve_test(suite, spec_file_path, agent_type)
-            if not suite_success:
-                console.print(
-                    f"  [yellow]⚠[/yellow] Warning: Resolution may not have "
-                    f"completed successfully for suite: {suite.name}"
+        console.print(f"  Processing test suite: [cyan]{suite.name}[/cyan]")
+        logger.info("Processing test suite: %s", suite.name)
+
+        # Iterate through each test case in the suite
+        for test_case in suite:
+            console.print(f"    Resolving test case: [yellow]{test_case.name}[/yellow]")
+            logger.info("Resolving test case: %s", test_case.name)
+            try:
+                test_success = await resolve_test(test_case, spec_file_path, agent_type)
+                if not test_success:
+                    console.print(
+                        f"    [yellow]⚠[/yellow] Warning: Resolution may not have "
+                        f"completed successfully for test: {test_case.name}"
+                    )
+                    logger.warning(
+                        "Resolution may not have completed successfully for test: %s",
+                        test_case.name
+                    )
+            except Exception as e:
+                logger.error(
+                    "Test resolution failed for test case %s: %s",
+                    test_case.name, e, exc_info=True
                 )
-                logger.warning(
-                    "Resolution may not have completed successfully for suite: %s",
-                    suite.name
-                )
-        except Exception as e:
-            logger.error(
-                "Test resolution failed for suite %s: %s",
-                suite.name, e, exc_info=True
-            )
-            raise
+                raise
 
 
 async def adw_test_loop(
@@ -110,15 +115,19 @@ async def adw_test_loop(
             logger.info("All tests passed - test loop complete")
             return True
 
+        # Count total failing test cases
+        total_failing_tests = sum(len(list(suite)) for suite in failing_suites)
         console.print(
-            f"\n[blue][3/4][/blue] Found {len(failing_suites)} test suite(s) with failures."
+            f"\n[blue][3/4][/blue] Found {total_failing_tests} failing test case(s) "
+            f"across {len(failing_suites)} test suite(s)."
         )
-        logger.info("Found %s failing test suites", len(failing_suites))
+        logger.info("Found %s failing test cases across %s test suites",
+                    total_failing_tests, len(failing_suites))
         for suite in failing_suites:
-            logger.debug("Failing suite: %s", suite.name)
+            logger.debug("Failing suite: %s with %s test(s)", suite.name, len(list(suite)))
 
-        # Resolve each failing test suite
-        await _resolve_failing_test_suites(failing_suites, spec_file_path, agent_type)
+        # Resolve each failing test case individually
+        await _resolve_failing_test_cases(failing_suites, spec_file_path, agent_type)
 
         # Clean up XML files for next iteration
         console.print("\n[blue][4/4][/blue] Cleaning up test results...")
