@@ -39,18 +39,12 @@ async def resolve_test(
     # Stringify the test suite to XML format (returns bytes with utf-8 encoding)
     stringified_tests = test_suite.tostring().decode('utf-8')
 
-    # Sanitize the stringified tests to avoid issues with argument parsing
-    # Replace problematic characters that can destroy command parsing
-    sanitized_tests = (stringified_tests
-                      .replace("'", "\\'")    # Escape single quotes
-                      .replace('"', '\\"')    # Escape double quotes
-                      .replace('\n', '\\n')   # Escape newlines
-                      .replace('\r', '\\r'))  # Escape carriage returns
-
     # Call the coding agent to resolve tests
+    # Note: Arguments are automatically sanitized in call_coding_agent to prevent
+    # command parsing issues with special characters
     try:
         await call_coding_agent(
-            agent_type, "resolve_failed_test", [sanitized_tests, spec_file_path]
+            agent_type, "resolve_failed_test", [stringified_tests, spec_file_path]
         )
     except Exception as e:
         logger.error("Test resolution failed for suite %s: %s", test_suite.name, e, exc_info=True)

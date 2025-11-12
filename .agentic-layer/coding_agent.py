@@ -14,6 +14,26 @@ from claude_options import get_default_claude_options
 logger = logging.getLogger(__name__)
 
 
+def _sanitize_argument(arg: str) -> str:
+    """
+    Sanitize argument strings to avoid issues with command parsing.
+
+    Escapes problematic characters that can interfere with command-line
+    argument parsing in both Claude Code and GitHub Copilot CLI.
+
+    Args:
+        arg: The argument string to sanitize
+
+    Returns:
+        Sanitized argument string
+    """
+    return (str(arg)
+            .replace("'", "\\'")    # Escape single quotes
+            .replace('"', '\\"')    # Escape double quotes
+            .replace('\n', '\\n')   # Escape newlines
+            .replace('\r', '\\r'))  # Escape carriage returns
+
+
 async def call_coding_agent(
     agent_type: AgentType,
     slash_command: str,
@@ -42,13 +62,16 @@ async def call_coding_agent(
         agent_type.value, slash_command, arguments
     )
 
+    # Sanitize all arguments to prevent command parsing issues
+    sanitized_arguments = [_sanitize_argument(arg) for arg in arguments]
+
     try:
         if agent_type == AgentType.CLAUDE:
-            command = _build_claude_command(slash_command, arguments)
+            command = _build_claude_command(slash_command, sanitized_arguments)
             logger.debug("Claude command: %s", command)
             await _execute_claude_agent(command, model)
         elif agent_type == AgentType.COPILOT:
-            prompt = _build_copilot_command(slash_command, arguments)
+            prompt = _build_copilot_command(slash_command, sanitized_arguments)
             logger.debug("Copilot prompt: %s", prompt[:200])  # Log first 200 chars
             await _execute_copilot_agent(prompt)
         else:
