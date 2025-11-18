@@ -8,19 +8,22 @@
 
 import logging
 from dotenv import load_dotenv
-from claude_agent_sdk import query
-from claude_options import get_default_claude_options
+from coding_agent import call_coding_agent
+from agent_types import AgentType
 
 load_dotenv()
 
 
-async def run_tests(test_result_folder: str) -> bool:
+async def run_tests(
+    test_result_folder: str,
+    agent_type: AgentType = AgentType.CLAUDE
+) -> bool:
     """
-    Runs tests calling Claude Code with the /test command.
+    Runs tests calling the coding agent with the /test command.
 
     Args:
-        run_id: The run identifier
         test_result_folder: Path to the test result folder
+        agent_type: The coding agent to use (CLAUDE or COPILOT)
 
     Returns:
         bool: True when ready, False otherwise
@@ -28,15 +31,11 @@ async def run_tests(test_result_folder: str) -> bool:
     logger = logging.getLogger(__name__)
     logger.info("Running tests, results in: %s", test_result_folder)
 
-    # Create the test command
-    command = f"/test {test_result_folder}"
-    logger.debug("Sending command: %s", command)
-
-    # Use query to send the slash command
-    options = get_default_claude_options(model="haiku")
+    # Call the coding agent to run tests
     try:
-        async for _ in query(prompt=command, options=options):
-            pass
+        await call_coding_agent(
+            agent_type, "test", [test_result_folder], model="haiku"
+        )
     except Exception as e:
         logger.error("Test execution failed: %s", e, exc_info=True)
         raise

@@ -95,7 +95,7 @@ async def adw_test_loop(
         console.print("\n[blue][1/4][/blue] Running tests...")
         logger.info("Running tests...")
         try:
-            success = await run_tests(test_result_folder)
+            success = await run_tests(test_result_folder, agent_type)
             if not success:
                 console.print(
                     "[yellow]⚠[/yellow] Warning: Test run may not have completed successfully"
