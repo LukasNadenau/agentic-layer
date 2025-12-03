@@ -25,6 +25,7 @@ Before creating the plan, thoroughly investigate the bug:
    - Determine the scope and impact of the bug
 
 2. **Codebase Investigation**
+   - Check for project documentation files (AGENT.md, README.md, CLAUDE.md, etc.) that provide context about the project structure, conventions, and guidelines
    - Search for the code paths involved in the bug
    - Identify where the bug manifests and where it originates
    - Review related code that might be affected
