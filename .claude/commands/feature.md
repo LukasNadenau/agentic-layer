@@ -20,6 +20,7 @@ Create a comprehensive implementation plan for a feature at `path_to_spec_file` 
 Before creating the plan, thoroughly research the codebase and external resources:
 
 1. **Codebase Analysis**
+   - Check for project documentation files (AGENT.md, README.md, CLAUDE.md, etc.) that provide context about the project structure, conventions, and guidelines
    - Search for similar features/patterns in the codebase
    - Identify existing conventions and patterns to follow
    - Note testing patterns and validation approaches
